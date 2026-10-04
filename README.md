@@ -6,7 +6,7 @@ answer five questions about where the money goes, who pays, and what drives the 
 
 **Stack:** PostgreSQL 16 · SQL (window functions, CTEs) · Python (pandas, matplotlib) · Streamlit
 
-**Dashboard:** run `streamlit run app/Home.py` (see [How to reproduce](#how-to-reproduce))
+**Live dashboard:** https://pbs-spending-analysis-vbe9zbgmxyccemd7vynfud.streamlit.app
 
 ## Key findings
 

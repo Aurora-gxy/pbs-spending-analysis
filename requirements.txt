@@ -1,0 +1,8 @@
+pandas
+pyarrow
+plotly
+streamlit
+matplotlib
+sqlalchemy
+psycopg2-binary
+python-calamine

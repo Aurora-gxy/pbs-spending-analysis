@@ -203,10 +203,50 @@ What the evaluation taught me:
   at the last query and missed growth rates the model calculated in its answer text. A second fix added
   refusal phrasings such as "doesn't say". After the fixes every configuration scored 100%.
 - **A 100% score is a ceiling, not a result.** Because every configuration is perfect, this set cannot
-  show whether the business rules help. A harder question set, or grading answer quality and not only
-  the numbers, is needed to tell the configurations apart.
+  show whether the business rules help. That is why the judge below grades answer quality as well.
 - **The grader is lenient.** A 1% tolerance plus rounding means a nearby number can pass
   (for example 51 counted as matching 50). This is a known limitation.
+
+### Second layer: LLM-as-a-Judge
+
+The number check gives every configuration 100%, so it cannot say which answers are *better*.
+[eval/judge.py](eval/judge.py) adds a second layer: a different model (Claude Sonnet) reads each saved
+answer, every query the assistant ran (up to 50 rows each) and the business rules, and scores five
+criteria from 0 to 2 (total 10):
+
+| Criterion | What it checks |
+|---|---|
+| faithful | every number is in the query results, follows from them, or comes from the rules |
+| direct | the first line answers the question |
+| definition | the answer says how the number was calculated |
+| concise | no filler or repetition, at most about three points |
+| scope | declines what the data cannot answer; does not wrongly refuse or claim causes |
+
+Held-out test set, Haiku 5.5:
+
+| Prompt | Number check | faithful | direct | definition | concise | scope | Judge total |
+|---|---|---|---|---|---|---|---|
+| v1 (no business rules) | 15/15 | 1.67 | 2.00 | 1.80 | 1.80 | 2.00 | 9.3 / 10 |
+| v2 (with business rules) | 15/15 | 1.80 | 1.93 | 1.93 | 1.93 | 1.87 | 9.5 / 10 |
+
+**Checking the judge.** I re-ran the queries by hand for four answers the judge marked down, and the judge
+was right each time ([eval/judge_spotcheck.md](eval/judge_spotcheck.md)). Two of them are wrong numbers in
+the answer text that the number check had passed, for example a year-on-year growth of +2.1% written
+where the data gives +5.1%. This is the main value of the second layer.
+
+**What it does not show.** v2 scores slightly higher than v1, but with 15 questions the gap (0.2 points)
+is within the noise, so I do not claim the business rules improve answers.
+
+Building the judge took three versions: plain-text JSON was cut off or mixed with reasoning; forcing
+the tool call is not supported by this model (HTTP 400); the final version offers a scoring tool, parses
+JSON from text as a fallback, retries, and leaves failed judgements out of the averages instead of
+counting them as 0. The first version also only showed the judge the first 5 rows of the last query,
+so it marked correct numbers as unsupported; the assistant now records every query it runs.
+
+```bash
+python3 -m eval.judge eval/results_test_claude-haiku-5-5_v1.csv eval/results_test_claude-haiku-5-5_v2.csv
+python3 -m eval.judge --summary
+```
 
 Run it yourself (needs `ANTHROPIC_API_KEY`):
 
@@ -268,7 +308,8 @@ export ANTHROPIC_API_KEY=...   # keep it out of the repo
   later months of the financial year.
 - The analysis shows what changed and when. It does not establish causes.
 - The AI assistant's evaluation set is small (45 questions) and every configuration scores 100%, so it
-  shows the assistant works on these questions but cannot rank the configurations.
+  shows the assistant works on these questions but cannot rank the configurations. The LLM judge is
+  itself a model and can be wrong; it was spot-checked on four answers, not validated at scale.
 
 ## Policy dates referred to above
 

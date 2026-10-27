@@ -1,0 +1,94 @@
+id,type,question,correct,faithful,direct,definition,concise,scope,total,reason,answer
+101,colloquial,去年药费涨了多少？,1,2,2,2,2,2,10,none,"去年（FY2026，2025年7月至2026年6月）药费总额为A$24.23B，比FY2025的A$23.14B增加A$1.09B，增长4.7%。
+
+- 政府支付增长5.2%（A$19.48B → A$20.50B）。
+- 患者自付增长2.1%（A$3.66B → A$3.73B），增幅低于政府支付。
+- 上一年度对比：FY2025比FY2024增长6.7%（A$21.69B → A$23.14B）。
+
+口径：总费用（政府+患者），FY2026 = 2025年7月至2026年6月，与FY2025（2024年7月至2025年6月）比较。"
+102,ambiguous,哪类药最贵？,1,2,2,2,2,1,9,"The question ""最贵"" is ambiguous (total spend vs per-script cost). The answer picks total spend without flagging the choice, and it did not check per-script cost across all groups.","按总支出（政府+患者）计，FY2026 花费最高的药物类别是**L 类抗肿瘤及免疫调节药**，总额 A$8.85B。
+
+- 第二名是 N 类神经系统药物，A$3.09B，约为 L 类的三分之一。
+- L 类处方量为 6.83M，远少于 N 类的 80.26M，但单张处方平均成本高得多：L 类约 A$1,296，N 类约 A$38.55。
+- L 类几乎全部由政府承担（A$8.75B），患者自付仅 A$0.10B。
+
+口径：总成本（政府+患者），按 ATC 一级分类（atc1_name）汇总，FY2026 = 2025年7月至2026年6月，已排除未分类项目（ATC 代码 X）。"
+103,multi_step,前 10 种药占 FY2026 总支出的百分之几？,1,2,2,2,2,2,10,none,"前 10 种药占 FY2026 总支出的 18.6%（A$4.51B / A$24.23B）。
+
+- 排名前 10 的药物合计支出为 A$4.51B，FY2026 全部药品总支出为 A$24.23B。
+- 第一名 PEMBROLIZUMAB 为 A$665.0M，第十名 ROSUVASTATIN 为 A$309.0M。
+- 排名时已剔除未分类项目（99999Z 及 ATC 组 X），但分母包含全部记录。
+
+口径：总支出（政府 + 患者自付），按药品名称合并所有参保类别后排名；FY2026 = 2025 年 7 月至 2026 年 6 月。"
+104,measure_confusion,"On average, how much does the government pay per prescription in FY2026?",1,2,2,2,2,2,10,none,"The government pays about A$60.46 per prescription in FY2026.
+
+- Government cost totalled A$20.50B across 338,967,120 scripts.
+- This covers all drugs and all scheme groups in the data, including the unclassified items.
+
+Definition: government cost (govt_cost) ÷ prescriptions (scripts), FY2026 = Jul 2025 - Jun 2026."
+105,measure_confusion,抗癌药的处方量占比是多少？,1,1,1,2,2,1,7,"The first line garbles the numbers: ""6.83M 张处方中的 338.97M 张中的一部分"" swaps the numerator and denominator. It also treats ATC L (cancer and immune drugs) as ""anti-cancer"" without flagging that the category is broader.","FY2026 抗癌及免疫药物（ATC 编码 L）的处方量占比为 2.0%，即 6.83M 张处方中的 338.97M 张中的一部分。
+
+- 占比从 FY2023 的 1.8% 逐年上升到 FY2024 的 1.9%、FY2025 的 2.0%，FY2026 保持在 2.0%。
+- 同期抗癌及免疫药物处方量从 5.98M 增至 6.83M。
+
+口径：处方量（scripts）占比 = 抗癌及免疫药物（ATC 一级编码 L）处方量 ÷ 全部药物处方量，FY2026 = 2025 年 7 月至 2026 年 6 月。"
+106,colloquial,How much did patients pay out of their own pocket last financial year?,1,2,2,2,2,2,10,none,"Patients paid A$3.73B out of pocket in FY2026 (Jul 2025 to Jun 2026), which is 15.4% of total PBS cost.
+
+- Total cost across all payers was A$24.23B, so the government paid the remaining 84.6%.
+
+Definition: patient cost (patient_cost), FY2026 = Jul 2025 to Jun 2026; patient share = patient cost / total cost (government + patient)."
+107,colloquial,Is heart medication spending going up?,1,0,2,2,2,2,8,"The year-on-year growth figures are wrong. FY2024 should be +5.1%, not +2.1%, and FY2025 should be +2.1%, not +2.0%. This also makes ""steady but slower"" misleading.","Yes. Heart medication (ATC group C, Cardiovascular system) spending rose to A$2.42B in FY2026, up 10.9% from A$2.19B in FY2023.
+
+- Year on year, growth has been steady but slower: +2.1% in FY2024, +2.0% in FY2025 and +3.3% in FY2026.
+- Prescriptions fell over the same period, from 110.2M in FY2023 to 100.6M in FY2026 (-8.7%). Cost per script rose from A$19.85 to A$24.10 (+21.4%).
+- The government share grew faster than the total: govt cost rose 17.5% (A$1.21B to A$1.42B), while patient cost rose 2.6% (A$977.0M to A$1.00B).
+
+Definition: total cost (government + patient) for ATC group C, FY2023 to FY2026, where FY2026 = Jul 2025 to Jun 2026."
+108,multi_step,Which drug's spending increased the most in dollars from FY2025 to FY2026?,1,2,2,2,2,2,10,none,"Dupilumab's spending rose the most in dollars: up A$135.0M, from A$491.9M in FY2025 to A$626.9M in FY2026 (+27.4%).
+
+- Tafamidis was second, up A$100.2M (+69.9%).
+- Daratumumab was third, up A$95.6M (+44.2%).
+- Progesterone (&) estradiol had the fastest growth among the top five, up 581.9% but only A$74.3M in dollars.
+
+Definition: total cost (government + patient), FY2025 = Jul 2024 - Jun 2025 vs FY2026 = Jul 2025 - Jun 2026, by drug name; unclassified items (99999Z, ATC X) excluded."
+109,multi_step,What was the average monthly PBS spend in FY2026?,1,2,2,2,2,2,10,none,"Average monthly PBS spend in FY2026 was A$2.02B.
+
+- Total FY2026 spend was A$24.23B across 12 months.
+- That is A$24.23B ÷ 12 = A$2.02B per month.
+
+Definition: total cost (government + patient), average per month over FY2026 = Jul 2025 - Jun 2026."
+110,measure_confusion,优惠患者的处方量占全部处方的比例是多少？,1,2,2,2,1,2,9,"Slightly padded: the trend bullet and the ""not cost or people"" note were not asked for, and the definition line partly repeats the first line.","FY2026（2025年7月至2026年6月）中，优惠（Concessional）患者组的处方量占全部处方的 58.2%，约为 1.97亿张处方，全部处方约 3.39亿张。
+
+- 近几年变化不大：FY2023 为 59.2%，FY2024 为 58.7%，FY2025 为 58.8%，FY2026 降至 58.2%。
+- 这里的比例是按处方量（scripts）计算，不是按费用或人数计算。
+
+口径：处方量占比 = 优惠组处方量 / 全部处方量（scheme_group = 'Concessional'），FY2026 = 2025年7月至2026年6月。"
+111,multi_step,How many different drugs were supplied in FY2026?,1,2,2,2,2,2,10,none,"1,099 different drugs were supplied in FY2026, excluding the unclassified items.
+
+- Including the unclassified items (drug_name '99999Z' and ATC group 'X'), the count is 1,103.
+
+Definition: distinct drug names with supply records, excluding unclassified items (drug_name '99999Z' and atc1_code 'X'), FY2026 = Jul 2025 - Jun 2026."
+112,colloquial,Top 3 drug groups by government spending this year?,1,2,2,2,2,2,10,none,"Top 3 drug groups by government spending in FY2026: Antineoplastic and immunomodulating agents (A$8.75B), Nervous system (A$2.19B), and Alimentary tract and metabolism (A$1.78B).
+
+- Antineoplastic and immunomodulating agents (cancer/immune drugs, ATC L) is 43.1% of the A$20.31B total for the year.
+- Nervous system is 10.8% and Alimentary tract and metabolism is 8.8%.
+- Unclassified items (ATC X and drug 99999Z) are excluded from the total and the ranking.
+
+Definition: government spending (govt_cost) by ATC level-1 drug group, FY2026 = Jul 2025 - Jun 2026, excluding unclassified items."
+113,multi_step,How many drugs make up half of government spending in FY2026?,1,2,2,2,2,2,10,none,"**50 drugs** account for half of FY2026 government spending (A$20.31B total across 1,099 drugs).
+
+- The ranking is by each drug's combined govt_cost across all scheme groups, so the cut-off drug is the one that takes the running total past 50%.
+- Drugs '99999Z' and ATC group X are excluded from both the ranking and the total.
+
+Definition: government cost (govt_cost), summed by drug and ranked from largest to smallest, FY2026 = Jul 2025 - Jun 2026."
+114,measure_confusion,Semaglutide 平均每张处方多少钱（FY2026）？,1,2,2,2,2,2,10,none,"FY2026 semaglutide 平均每张处方成本约为 A$135.43。
+
+- FY2026 总成本 A$440.00M，处方量 3,248,790 张。
+- 该数字包含所有含 semaglutide 的药品记录，按 drug_name 模糊匹配计算。
+
+Definition: 平均每张处方成本 = 总成本（政府 + 患者）÷ 处方数，FY2026 = 2025 年 7 月至 2026 年 6 月。"
+115,out_of_scope,What are the most common side effects of dupilumab?,1,2,2,1,2,2,9,"The Definition line says ""not applicable"", which is acceptable for a refusal but adds little.","The data does not contain side effect information. The table covers PBS prescriptions, costs and scripts only, with no adverse events or safety data.
+
+The closest question I can answer is how much the PBS spent on dupilumab and how many scripts were supplied, by financial year.
+
+Definition: not applicable. No side effect data is available in the monthly_drug table."

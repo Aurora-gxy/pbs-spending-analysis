@@ -50,7 +50,7 @@ def _ask_anthropic(question, system):
     client = anthropic.Anthropic()
     tools = [{"name": "run_sql", "description": TOOL_DESCRIPTION, "input_schema": SQL_PARAM}]
     messages = [{"role": "user", "content": question}]
-    out = {"answer": "", "sql": None, "columns": [], "rows": [], "steps": 0, "error": None, "all_rows": []}
+    out = {"answer": "", "sql": None, "columns": [], "rows": [], "steps": 0, "error": None, "all_rows": [], "queries": []}
     for _ in range(MAX_STEPS + 1):
         resp = client.messages.create(model=MODEL, max_tokens=1024, system=system,
                                       tools=tools, messages=messages)
@@ -68,6 +68,9 @@ def _ask_anthropic(question, system):
             if table:
                 out["columns"], out["rows"] = table
                 out["all_rows"].extend(table[1])
+            out["queries"].append({"sql": out["sql"], "error": out["error"],
+                                   "columns": table[0] if table else [],
+                                   "rows": [list(r) for r in table[1][:50]] if table else []})
             results.append({"type": "tool_result", "tool_use_id": c.id,
                             "content": json.dumps(payload, ensure_ascii=False)[:8000]})
         messages.append({"role": "user", "content": results})
@@ -82,7 +85,7 @@ def _ask_openai(question, system):
     tools = [{"type": "function", "function": {"name": "run_sql", "description": TOOL_DESCRIPTION,
                                                 "parameters": SQL_PARAM}}]
     messages = [{"role": "system", "content": system}, {"role": "user", "content": question}]
-    out = {"answer": "", "sql": None, "columns": [], "rows": [], "steps": 0, "error": None, "all_rows": []}
+    out = {"answer": "", "sql": None, "columns": [], "rows": [], "steps": 0, "error": None, "all_rows": [], "queries": []}
     for _ in range(MAX_STEPS + 1):
         resp = client.chat.completions.create(model=MODEL, messages=messages, tools=tools, temperature=0)
         msg = resp.choices[0].message
@@ -98,6 +101,9 @@ def _ask_openai(question, system):
             if table:
                 out["columns"], out["rows"] = table
                 out["all_rows"].extend(table[1])
+            out["queries"].append({"sql": out["sql"], "error": out["error"],
+                                   "columns": table[0] if table else [],
+                                   "rows": [list(r) for r in table[1][:50]] if table else []})
             messages.append({"role": "tool", "tool_call_id": c.id,
                              "content": json.dumps(payload, ensure_ascii=False)[:8000]})
     out["answer"] = "Stopped after too many attempts."

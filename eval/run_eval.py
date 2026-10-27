@@ -135,6 +135,7 @@ def run(version, qset="dev"):
                          else auto_tag(res, ok)), "error_type": "", "steps": res["steps"],
             "model_sql": res["sql"], "gold_sql": " || ".join(item.get("sql_any") or [item.get("sql", "(should refuse)")]),
             "model_rows": json.dumps(res["rows"][:5], default=str, ensure_ascii=False),
+            "model_queries": json.dumps(res.get("queries", []), default=str, ensure_ascii=False),
             "gold_rows": json.dumps(gold_rows[:5], default=str, ensure_ascii=False),
             "answer": res["answer"],
         })

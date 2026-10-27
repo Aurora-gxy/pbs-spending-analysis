@@ -1,0 +1,93 @@
+id,type,question,correct,faithful,direct,definition,concise,scope,total,reason,answer
+101,colloquial,去年药费涨了多少？,1,2,2,2,2,2,10,none,"过去一年（FY2026，即 2025 年 7 月至 2026 年 6 月）药费总额为 A$24.23B，比 FY2025 的 A$23.14B 增加 A$1.09B，增长 4.7%。
+
+- FY2025 为 A$23.14B，FY2024 为 A$21.69B，前一年增幅约为 6.7%。
+- 数据中 FY2027 只有 2026 年 7 月一个月（A$2.20B），不完整，因此未用于比较。
+
+口径：药费总额（政府支付 + 患者自付），按财年（7 月至次年 6 月）汇总；FY2026 = 2025 年 7 月至 2026 年 6 月，对比 FY2025 = 2024 年 7 月至 2025 年 6 月。"
+102,ambiguous,哪类药最贵？,1,2,2,1,1,2,8,"The definition line is cut off mid-sentence (""每张处方费用""). It also gives four supporting points, and one of them is a per-script comparison that goes beyond what the question asked.","**抗肿瘤及免疫调节药（Antineoplastic and immunomodulating agents）是总费用最高的一类：FY2023–FY2026 合计 A$31.40B，占所列各类总费用的 35.1%。**
+
+- 按处方计，它也最贵：约 A$1,223 每张处方（2,568 万张处方），而心血管系统类约 A$22 每张（4.2 亿张处方）。
+- 第二名是神经系统类，总费用 A$10.56B；第三名是心血管系统类，A$9.26B。
+- 该类 FY2026 总费用为 A$8.85B，仍居首位，第二名神经系统类为 A$3.09B。
+
+口径：总费用（政府支付 + 患者支付），按 ATC 一级分类汇总；FY2023–FY2026 = 2022 年 7 月至 2026 年 6 月。每张处方费用"
+103,multi_step,前 10 种药占 FY2026 总支出的百分之几？,1,1,2,2,1,2,8,"The ""前三名依次为"" line is garbled because it lists only two drugs after the first. The query also didn't exclude the unclassified items 99999Z and X, so the 1,103 drug count may include them.","前 10 种药占 FY2026 总支出的 18.6%（A$4.51B / A$24.23B）。
+
+- 第一名是 PEMBROLIZUMAB，A$665.0M；前三名依次为 DUPILUMAB（A$626.9M）和 ELEXACAFTOR + TEZACAFTOR + IVACAFTOR (&) IVACAFTOR（A$620.0M）。
+- 数据中 FY2026 共有 1,103 种药品。前 10 种占比不高，支出较为分散。
+
+口径：总支出（政府 + 患者），按药品名称汇总后排序取前 10；FY2026 = 2025 年 7 月至 2026 年 6 月。"
+104,measure_confusion,"On average, how much does the government pay per prescription in FY2026?",1,2,2,2,2,2,10,none,"The government paid about A$60.46 per prescription in FY2026.
+
+- Government cost was A$20.50B across 339.0M prescriptions.
+- This is a simple weighted average (total government cost divided by total prescriptions), not an average of per-drug figures.
+
+Definition: government cost (govt_cost) ÷ prescriptions (scripts), all drugs and scheme groups, FY2026 = Jul 2025 - Jun 2026 (12 months of data)."
+105,measure_confusion,抗癌药的处方量占比是多少？,1,2,2,2,1,2,9,"The ranking and cardiovascular bullet are extra to the question. The ranking also includes FY2027 data, which the definition line says was excluded.","FY2023–FY2026 抗癌药处方量占比约为 **1.9%**（25,677,437 张处方 / 1,349,535,237 张处方）。
+
+- 占比逐年上升：FY2023 为 1.8%，FY2024 为 1.9%，FY2025 和 FY2026 均为 2.0%。
+- 按 ATC 一级分类，L 类（抗肿瘤和免疫调节剂）是处方量排名第 11 的类别。C 类心血管药物最多，约 4.29 亿张。
+- 数据中的 L 类包含免疫调节剂，不只是抗癌药。数据表没有单独的抗癌药分类，因此这里以 L 类作为近似口径。
+
+口径：处方量（scripts）按 ATC 一级代码 L（抗肿瘤和免疫调节剂）统计，占所有药品处方总量的比例；期间为 FY2023–FY2026（2022 年 7 月至 2026 年 6 月）。FY2027 仅有 2026 年 7 月一个月的数据，未纳入。"
+106,colloquial,How much did patients pay out of their own pocket last financial year?,1,2,2,2,2,2,10,none,"Patients paid A$3.73B out of pocket in FY2026 (Jul 2025 to Jun 2026), the latest complete financial year.
+
+- That is up from A$3.66B in FY2025, an increase of 2.1%.
+- FY2027 has only one month (July 2026) so far, so it is not a full-year comparison.
+
+Definition: patient cost (out-of-pocket, excluding government share), FY2026 = Jul 2025 - Jun 2026."
+107,colloquial,Is heart medication spending going up?,1,2,2,2,2,2,10,none,"Yes. Heart medication spending (ATC group C, Cardiovascular system) rose in every year from FY2023 to FY2026, reaching A$2.42B in FY2026, up 10.9% from A$2.19B in FY2023. Prescription volume fell over the same period.
+
+- Year-on-year total cost growth: FY2024 +5.1%, FY2025 +2.1%, FY2026 +3.3%.
+- Government cost rose 17.5% (A$1.21B to A$1.42B), while patient cost rose 2.6% (A$977.0M to A$1.00B).
+- Scripts fell 8.7% (110.2M to 100.6M), so cost per script rose from about A$19.85 to A$24.10.
+
+Definition: total cost (government + patient) for ATC group C, FY2023 to FY2026 = Jul 2022 - Jun 2026. The single month in the data for FY2027 (Jul 2026) is excluded."
+108,multi_step,Which drug's spending increased the most in dollars from FY2025 to FY2026?,1,2,2,2,2,2,10,none,"**Dupilumab** had the largest dollar increase: total spending rose by A$135.0M, from A$491.9M in FY2025 to A$626.9M in FY2026 (+27.4%).
+
+- Next largest: tafamidis, up A$100.2M (A$143.4M to A$243.6M).
+- Then daratumumab, up A$95.6M (A$216.0M to A$311.6M).
+
+Definition: total cost (government + patient), summed across all scheme groups by drug name; FY2025 = Jul 2024 - Jun 2025, FY2026 = Jul 2025 - Jun 2026."
+109,multi_step,What was the average monthly PBS spend in FY2026?,1,2,2,2,2,2,10,none,"The average monthly PBS spend in FY2026 was A$2.02B (total cost, government plus patient).
+
+- FY2026 total spend across all 12 months was A$24.23B.
+- The data covers all 12 months from Jul 2025 to Jun 2026, so the average is the annual total divided by 12.
+
+Definition: total cost (government + patient), averaged per month over FY2026 = Jul 2025 - Jun 2026."
+110,measure_confusion,优惠患者的处方量占全部处方的比例是多少？,1,1,2,2,2,2,9,"The answer says every year is between 58% and 59%, but FY2023 is 59.2%. It also says Other is under 0.1% when the query shows 0.1%. The other-scheme shares come from all data including FY2027, not the FY2023–FY2026 period it names.","优惠（Concessional）处方量占全部处方量的 58.8%（FY2023–FY2026 合计，约 7.93 亿张 / 13.50 亿张）。
+
+- 每个财年的占比都在 58% 至 59% 之间，FY2023 为 59.2%，FY2026 为 58.2%。
+- 同期其他类别：General 约 39%，RPBS 约 2%，Other 不到 0.1%。
+- 数据中还有 2026 年 7 月的记录（归入 FY2027），本次未计入，因为它只有一个月且超出 FY2023–FY2026 的范围。
+
+Definition: 处方量 = 处方数（scripts）；优惠 = scheme_group 为 'Concessional'；期间 = FY2023–FY2026（2022 年 7 月至 2026 年 6 月）。"
+111,multi_step,How many different drugs were supplied in FY2026?,1,1,2,2,2,2,9,"The claim that the data covers ""every month"" is inferred from the min and max dates only. The count may also include the unclassified item '99999Z', and the answer doesn't mention this.","1,103 distinct drugs were supplied in FY2026.
+
+- Counted across all scheme groups (General, Concessional, RPBS, Other), so a drug supplied under more than one scheme is counted once.
+- The data covers every month from July 2025 to June 2026.
+
+Definition: distinct drug names (generic) with any supply recorded, FY2026 = Jul 2025 - Jun 2026."
+112,colloquial,Top 3 drug groups by government spending this year?,1,1,2,2,2,2,9,"Numbers check out, but ""latest year in the data"" is loose wording, since FY2027 has July 2026. It should say latest complete year.","The top 3 ATC level-1 drug groups by government spending in FY2026 are Antineoplastic and immunomodulating agents (A$8.75B), Nervous system (A$2.19B), and Alimentary tract and metabolism (A$1.78B).
+
+- Together they account for A$12.72B, or 62.1% of total FY2026 government spending of A$20.50B.
+- Antineoplastic and immunomodulating agents alone is 42.7% of the total.
+- FY2026 is the latest year in the data, with all 12 months (Jul 2025 to Jun 2026) present.
+
+Definition: government cost (cost paid by the government), FY2026 = Jul 2025 - Jun 2026, grouped by ATC level-1 drug group."
+113,multi_step,How many drugs make up half of government spending in FY2026?,1,1,2,1,2,2,8,"The query did not exclude '99999Z' or atc1 'X' as rule 7 requires, so the 51 and 1,103 counts may include unclassified items, and the definition does not mention this.","**51 drugs** make up half of government spending in FY2026, out of 1,103 distinct drugs.
+
+- Total government spending in FY2026 was A$20.50B.
+- Half of that is about A$10.25B, reached by the top 51 drugs ranked by government cost.
+
+Definition: government cost (govt_cost), summed across all scheme groups, FY2026 = Jul 2025 - Jun 2026. Drugs are ranked by their FY2026 government cost, and the count is the smallest number whose cumulative total reaches 50% of the FY2026 total."
+114,measure_confusion,Semaglutide 平均每张处方多少钱（FY2026）？,1,2,2,2,2,2,10,none,"Semaglutide 在 FY2026 平均每张处方约 A$135.43。
+
+- FY2026 总费用为 A$440.0M，处方量为 3,248,790 张。
+- 数据覆盖 2025 年 7 月至 2026 年 6 月全部 12 个月。
+
+口径：总费用（政府 + 患者）除以处方数（scripts），FY2026 = 2025 年 7 月至 2026 年 6 月，药品名 SEMAGLUTIDE，所有计划类别合计。"
+115,out_of_scope,What are the most common side effects of dupilumab?,1,2,2,1,2,2,9,"No definition line, but none is needed since no number was computed. The answer correctly declines and offers a close alternative.","The PBS dataset does not contain side effect or adverse event data, so I can't say what the most common side effects of dupilumab are.
+
+The closest question it can answer is how many prescriptions and how much cost dupilumab has generated over time, by scheme group. I can run that for FY2023 to FY2026 if useful."

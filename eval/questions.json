@@ -1,0 +1,187 @@
+[
+ {
+  "id": 1,
+  "type": "basic",
+  "q": "What was the total PBS cost in FY2026?",
+  "sql": "SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2026"
+ },
+ {
+  "id": 2,
+  "type": "basic",
+  "q": "How many prescriptions were supplied in FY2025?",
+  "sql": "SELECT SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year = 2025"
+ },
+ {
+  "id": 3,
+  "type": "basic",
+  "q": "How much did the government pay in FY2024?",
+  "sql": "SELECT SUM(govt_cost) AS govt_cost FROM monthly_drug WHERE fin_year = 2024"
+ },
+ {
+  "id": 4,
+  "type": "fy_definition",
+  "q": "What was the total cost in the 2024-25 financial year?",
+  "sql": "SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2025"
+ },
+ {
+  "id": 5,
+  "type": "fy_definition",
+  "q": "2025/26 财年的政府支出是多少？",
+  "sql": "SELECT SUM(govt_cost) AS govt_cost FROM monthly_drug WHERE fin_year = 2026"
+ },
+ {
+  "id": 6,
+  "type": "latest_year",
+  "q": "Which drug group had the highest total cost in the latest year?",
+  "sql": "SELECT atc1_name, SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2026 GROUP BY 1 ORDER BY 2 DESC LIMIT 1"
+ },
+ {
+  "id": 7,
+  "type": "latest_year",
+  "q": "How many prescriptions were there in the most recent year?",
+  "sql": "SELECT SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year = 2026"
+ },
+ {
+  "id": 8,
+  "type": "ratio",
+  "q": "What share of total cost did patients pay in FY2026?",
+  "sql": "SELECT SUM(patient_cost) / SUM(total_cost) AS patient_share FROM monthly_drug WHERE fin_year = 2026"
+ },
+ {
+  "id": 9,
+  "type": "ratio",
+  "q": "What was the average total cost per prescription in FY2023 and FY2026?",
+  "sql": "SELECT fin_year, SUM(total_cost) / SUM(scripts) AS cost_per_script FROM monthly_drug WHERE fin_year IN (2023, 2026) GROUP BY 1 ORDER BY 1"
+ },
+ {
+  "id": 10,
+  "type": "ratio",
+  "q": "患者自付比例在 FY2023 是多少？",
+  "sql": "SELECT SUM(patient_cost) / SUM(total_cost) AS patient_share FROM monthly_drug WHERE fin_year = 2023"
+ },
+ {
+  "id": 11,
+  "type": "growth",
+  "q": "By what percentage did total cost grow from FY2023 to FY2026?",
+  "sql": "SELECT (SUM(total_cost) FILTER (WHERE fin_year = 2026) / SUM(total_cost) FILTER (WHERE fin_year = 2023) - 1) * 100 AS growth_pct FROM monthly_drug"
+ },
+ {
+  "id": 12,
+  "type": "growth",
+  "q": "How much did prescription volume grow from FY2023 to FY2026, in percent?",
+  "sql": "SELECT (SUM(scripts) FILTER (WHERE fin_year = 2026) * 1.0 / SUM(scripts) FILTER (WHERE fin_year = 2023) - 1) * 100 AS growth_pct FROM monthly_drug"
+ },
+ {
+  "id": 13,
+  "type": "growth",
+  "q": "Which drug group's total cost grew fastest between FY2025 and FY2026 (in percent)?",
+  "sql": "SELECT atc1_name, (SUM(total_cost) FILTER (WHERE fin_year = 2026) / SUM(total_cost) FILTER (WHERE fin_year = 2025) - 1) * 100 AS growth_pct FROM monthly_drug WHERE atc1_code <> 'X' GROUP BY 1 ORDER BY 2 DESC LIMIT 1"
+ },
+ {
+  "id": 14,
+  "type": "ranking",
+  "q": "What were the top 5 drugs by total cost in FY2026?",
+  "sql": "SELECT drug_name, SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' GROUP BY 1 ORDER BY 2 DESC LIMIT 5"
+ },
+ {
+  "id": 15,
+  "type": "ranking",
+  "q": "Which drug had the most prescriptions in FY2026?",
+  "sql": "SELECT drug_name, SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' GROUP BY 1 ORDER BY 2 DESC LIMIT 1"
+ },
+ {
+  "id": 16,
+  "type": "ranking",
+  "q": "FY2026 政府支出最高的 3 种药是什么？",
+  "sql": "SELECT drug_name, SUM(govt_cost) AS govt_cost FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' GROUP BY 1 ORDER BY 2 DESC LIMIT 3"
+ },
+ {
+  "id": 17,
+  "type": "drug_lookup",
+  "q": "How much was spent on semaglutide in FY2026?",
+  "sql": "SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2026 AND UPPER(drug_name) LIKE '%SEMAGLUTIDE%'"
+ },
+ {
+  "id": 18,
+  "type": "drug_lookup",
+  "q": "How many scripts of pembrolizumab were supplied in FY2025?",
+  "sql": "SELECT SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year = 2025 AND UPPER(drug_name) LIKE '%PEMBROLIZUMAB%'"
+ },
+ {
+  "id": 19,
+  "type": "category",
+  "q": "What share of FY2026 total cost went to cancer and immune drugs?",
+  "sql": "SELECT SUM(total_cost) FILTER (WHERE atc1_code = 'L') / SUM(total_cost) AS share FROM monthly_drug WHERE fin_year = 2026"
+ },
+ {
+  "id": 20,
+  "type": "category",
+  "q": "Which drug group had the most prescriptions in FY2026?",
+  "sql": "SELECT atc1_name, SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year = 2026 GROUP BY 1 ORDER BY 2 DESC LIMIT 1"
+ },
+ {
+  "id": 21,
+  "type": "scheme",
+  "q": "How much did concessional patients' prescriptions cost in total in FY2026?",
+  "sql": "SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2026 AND scheme_group = 'Concessional'"
+ },
+ {
+  "id": 22,
+  "type": "scheme",
+  "q": "What was the patient share of cost for General patients in FY2026?",
+  "sql": "SELECT SUM(patient_cost) / SUM(total_cost) AS patient_share FROM monthly_drug WHERE fin_year = 2026 AND scheme_group = 'General'"
+ },
+ {
+  "id": 23,
+  "type": "time",
+  "q": "In which calendar month of 2025 was total cost highest?",
+  "sql": "SELECT cal_month, SUM(total_cost) AS total_cost FROM monthly_drug WHERE cal_year = 2025 GROUP BY 1 ORDER BY 2 DESC LIMIT 1"
+ },
+ {
+  "id": 24,
+  "type": "time",
+  "q": "What was the total cost in December 2025?",
+  "sql": "SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE month_start = DATE '2025-12-01'"
+ },
+ {
+  "id": 25,
+  "type": "latest_year",
+  "q": "Compared with the year before, how much did government cost change in the latest year, in percent?",
+  "sql": "SELECT (SUM(govt_cost) FILTER (WHERE fin_year = 2026) / SUM(govt_cost) FILTER (WHERE fin_year = 2025) - 1) * 100 AS growth_pct FROM monthly_drug"
+ },
+ {
+  "id": 26,
+  "type": "out_of_scope",
+  "q": "Which hospital prescribed the most pembrolizumab in FY2026?",
+  "expect": "refuse",
+  "note": "no hospital or prescriber field"
+ },
+ {
+  "id": 27,
+  "type": "out_of_scope",
+  "q": "Which Australian state had the highest PBS spending in FY2026?",
+  "expect": "refuse",
+  "note": "no state field"
+ },
+ {
+  "id": 28,
+  "type": "out_of_scope",
+  "q": "How many patients used semaglutide in FY2026?",
+  "expect": "refuse",
+  "note": "scripts are not patients; no patient counts"
+ },
+ {
+  "id": 29,
+  "type": "out_of_scope",
+  "q": "What was the total PBS cost in FY2020?",
+  "expect": "refuse",
+  "note": "data starts in FY2023"
+ },
+ {
+  "id": 30,
+  "type": "out_of_scope",
+  "q": "What will total PBS cost be in FY2028?",
+  "expect": "refuse",
+  "note": "no forecasts in the data"
+ }
+]

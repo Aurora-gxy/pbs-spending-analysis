@@ -1,0 +1,107 @@
+id,type,question,correct,auto_tag,error_type,steps,model_sql,gold_sql,model_rows,gold_rows,answer
+101,colloquial,去年药费涨了多少？,1,,,1,"SELECT fin_year, SUM(total_cost) AS total_cost, SUM(govt_cost) AS govt_cost, SUM(scripts) AS total_scripts FROM monthly_drug WHERE fin_year IN (2025,2026) GROUP BY fin_year ORDER BY fin_year",SELECT (SUM(total_cost) FILTER (WHERE fin_year = 2026) / SUM(total_cost) FILTER (WHERE fin_year = 2025) - 1) * 100 AS growth_pct FROM monthly_drug || SELECT SUM(total_cost) FILTER (WHERE fin_year = 2026) - SUM(total_cost) FILTER (WHERE fin_year = 2025) AS increase FROM monthly_drug || SELECT (SUM(total_cost) FILTER (WHERE cal_year = 2025) / SUM(total_cost) FILTER (WHERE cal_year = 2024) - 1) * 100 AS growth_pct FROM monthly_drug || SELECT SUM(total_cost) FILTER (WHERE cal_year = 2025) - SUM(total_cost) FILTER (WHERE cal_year = 2024) AS increase FROM monthly_drug,"[[2025, 23135173234.31012, 19476630579.51008, 335117915], [2026, 24229568191.700146, 20495042413.01991, 338967120]]",[[4.730437703258716]],"2025-26 财年（FY2026）的药费总额为 A$24.23B，比 FY2025 的 A$23.14B 增加 A$1.09B，增长 4.7%。
+
+- 政府支出从 A$19.48B 增至 A$20.50B，增加 A$1.02B，增长 5.2%。
+- 处方量从 3.35 亿张增至 3.39 亿张，增长 1.1%。
+
+口径：总费用（政府 + 患者），FY2026 = 2025 年 7 月至 2026 年 6 月，对比 FY2025 = 2024 年 7 月至 2025 年 6 月。"
+102,ambiguous,哪类药最贵？,1,,,2,"SELECT atc1_name, SUM(total_cost)/SUM(scripts) AS avg_cost_per_script, SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year=2026 AND atc1_code<>'X' GROUP BY atc1_name ORDER BY avg_cost_per_script DESC LIMIT 3",SELECT atc1_name FROM monthly_drug WHERE fin_year = 2026 GROUP BY 1 ORDER BY SUM(total_cost) DESC LIMIT 1 || SELECT atc1_name FROM monthly_drug WHERE fin_year = 2026 AND atc1_code <> 'X' GROUP BY 1 ORDER BY SUM(total_cost) / SUM(scripts) DESC LIMIT 1,"[[""Antineoplastic and immunomodulating agents"", 1296.0820447427186, 6826541], [""Various"", 316.6254730748286, 207631], [""Respiratory system"", 129.80888443981544, 12828389]]","[[""Antineoplastic and immunomodulating agents""]]","最贵的药物类别是抗肿瘤和免疫调节药（ATC L 类，即癌症/免疫类药物）。2025-26 财年，这类药的总费用为 A$8.85B，占全部已分类药物费用的 36.8%。
+
+- 排第二的是神经系统药物，费用为 A$3.09B。第三是心血管系统药物，费用为 A$2.42B。
+- 按每张处方的平均费用算，抗肿瘤和免疫调节药也最高，为 A$1,296.08。第二名是“Various”类，为 A$316.63。
+- 抗肿瘤和免疫调节药的处方量为 6.83M 张，少于神经系统药物（80.26M 张）和心血管系统药物（100.59M 张）。
+
+口径：总费用（政府＋患者），按 ATC 一级分类汇总，FY2026 = 2025 年 7 月至 2026 年 6 月，已剔除未分类项目（ATC X）。"
+103,multi_step,前 10 种药占 FY2026 总支出的百分之几？,1,,,1,"WITH d AS (SELECT drug_name, SUM(total_cost) AS drug_cost FROM monthly_drug WHERE fin_year=2026 AND drug_name<>'99999Z' AND atc1_code<>'X' GROUP BY drug_name), r AS (SELECT * FROM d ORDER BY drug_cost DESC LIMIT 10), t AS (SELECT SUM(total_cost) AS all_cost FROM monthly_drug WHERE fin_year=2026), t2 AS (SELECT SUM(drug_cost) AS classified_cost FROM d) SELECT (SELECT SUM(drug_cost) FROM r) AS top10_cost, all_cost, classified_cost, (SELECT SUM(drug_cost) FROM r)/all_cost*100 AS share_of_all, (SELECT SUM(drug_cost) FROM r)/classified_cost*100 AS share_of_classified FROM t, t2","WITH d AS (SELECT drug_name, SUM(total_cost) c FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' GROUP BY 1) SELECT (SELECT SUM(c) FROM (SELECT c FROM d ORDER BY c DESC LIMIT 10)) / (SELECT SUM(total_cost) FROM monthly_drug WHERE fin_year = 2026) AS share","[[4513362551.710001, 24229568191.700146, 24041949275.05001, 18.627498913728292, 18.772864463173246]]",[[0.18627498913728294]],"前 10 种药合计占 FY2026 总支出的 18.6%（A$4.51B，全部药品总支出为 A$24.23B）。
+
+- 排名时已剔除未分类项目（99999Z 和 ATC 组 X）。
+- 分母若也剔除这些未分类项目（A$24.04B），占比为 18.8%。
+
+口径：总费用（政府＋患者），FY2026 = 2025 年 7 月至 2026 年 6 月；按药品通用名汇总总费用后排名。"
+104,measure_confusion,"On average, how much does the government pay per prescription in FY2026?",1,,,1,"SELECT SUM(govt_cost)/SUM(scripts) AS govt_cost_per_script, SUM(govt_cost) AS govt_cost, SUM(scripts) AS scripts, SUM(total_cost)/SUM(scripts) AS total_cost_per_script FROM monthly_drug WHERE fin_year=2026",SELECT SUM(govt_cost) / SUM(scripts) AS govt_per_script FROM monthly_drug WHERE fin_year = 2026,"[[60.46321664773831, 20495042413.01991, 338967120, 71.48058546711005]]",[[60.46321664773831]],"The government paid an average of A$60.46 per prescription in FY2026.
+
+- Government cost was A$20.50B across 338.97M scripts.
+- Total cost per script, government plus patient, was A$71.48.
+
+Definition: government cost (govt_cost) divided by scripts supplied, FY2026 = Jul 2025 - Jun 2026."
+105,measure_confusion,抗癌药的处方量占比是多少？,1,,,1,"SELECT fin_year, SUM(CASE WHEN atc1_code='L' THEN scripts END) AS cancer_immune_scripts, SUM(scripts) AS total_scripts, SUM(CASE WHEN atc1_code='L' THEN scripts END)*100.0/SUM(scripts) AS cancer_immune_script_share_pct, SUM(CASE WHEN atc1_code='L' THEN total_cost END)*100.0/SUM(total_cost) AS cancer_immune_cost_share_pct FROM monthly_drug WHERE fin_year BETWEEN 2023 AND 2026 GROUP BY fin_year ORDER BY fin_year",SELECT SUM(scripts) FILTER (WHERE atc1_code = 'L') * 1.0 / SUM(scripts) AS share FROM monthly_drug WHERE fin_year = 2026,"[[2023, 5982761, 335875392, 1.781244218093834, 33.13815471398614], [2024, 6314629, 339574810, 1.8595693243559497, 34.280942836592146], [2025, 6553506, 335117915, 1.9555821120455468, 35.99228936276572], [2026, 6826541, 338967120, 2.013924241383648, 36.51636359260751]]",[[0.02013924241383648]],"抗癌药和免疫类药物（ATC L 类）占 FY2026 处方量的 2.0%，约 683 万张，全部处方约 3.39 亿张。
+
+- 这一占比逐年上升：FY2023 为 1.8%，FY2024 为 1.9%，FY2025 为 2.0%。
+- 这类药物的费用占比远高于处方量占比。FY2026 它占总费用的 36.5%，FY2023 为 33.1%。
+
+说明：数据中的 L 类是“抗肿瘤和免疫调节药”，无法只拆出抗癌药，所以上面的数字包含免疫类药物。
+
+口径：按处方量（scripts）计算，抗肿瘤和免疫调节药（ATC1 = L）占全部药物处方量的比例，FY2026 = 2025年7月至2026年6月。"
+106,colloquial,How much did patients pay out of their own pocket last financial year?,1,,,2,"SELECT fin_year, SUM(patient_cost) AS patient_cost FROM monthly_drug WHERE fin_year IN (2025,2026) GROUP BY fin_year ORDER BY fin_year",SELECT SUM(patient_cost) AS patient_cost FROM monthly_drug WHERE fin_year = 2026,"[[2025, 3658542654.7999735], [2026, 3734525778.679942]]",[[3734525778.679942]],"Patients paid A$3.73B out of pocket in FY2026.
+
+- That is 15.4% of total PBS cost of A$24.23B.
+- It is up 2.1% from A$3.66B in FY2025.
+- It covers 338.97M scripts, or about A$11.02 per script.
+
+Definition: patient cost (patient co-payments), FY2026 = Jul 2025 - Jun 2026, all scheme groups."
+107,colloquial,Is heart medication spending going up?,1,,,1,"SELECT fin_year, SUM(total_cost) AS total_cost, SUM(govt_cost) AS govt_cost, SUM(scripts) AS scripts FROM monthly_drug WHERE atc1_code='C' AND fin_year BETWEEN 2023 AND 2026 GROUP BY fin_year ORDER BY fin_year",SELECT (SUM(total_cost) FILTER (WHERE fin_year = 2026) / SUM(total_cost) FILTER (WHERE fin_year = 2025) - 1) * 100 AS growth_pct FROM monthly_drug WHERE atc1_code = 'C' || SELECT (SUM(total_cost) FILTER (WHERE fin_year = 2026) / SUM(total_cost) FILTER (WHERE fin_year = 2023) - 1) * 100 AS growth_pct FROM monthly_drug WHERE atc1_code = 'C' || SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE atc1_code = 'C' AND fin_year = 2026,"[[2023, 2187119581.4900017, 1210081832.490001, 110193661], [2024, 2298836309.5099998, 1286341866.2099984, 108061109], [2025, 2346050166.7200003, 1358147731.6100008, 101362412], [2026, 2424487939.8799987, 1422134456.9000015, 100591573]]",[[3.343397096646994]],"Yes. Spending on heart (cardiovascular) medicines rose from A$2.19B in FY2023 to A$2.42B in FY2026, an increase of 10.9%.
+
+- Year-on-year growth in total cost was 5.1% in FY2024, 2.1% in FY2025 and 3.3% in FY2026.
+- Government spending rose from A$1.21B to A$1.42B over the same period, an increase of 17.5%.
+- Scripts fell from 110.2M to 100.6M (−8.7%). The higher spending therefore comes with fewer scripts, so the average cost per script went up.
+
+Definition: total cost (government + patient) for ATC group C, Cardiovascular system, FY2023–FY2026 (each year runs Jul–Jun, e.g. FY2026 = Jul 2025 – Jun 2026)."
+108,multi_step,Which drug's spending increased the most in dollars from FY2025 to FY2026?,1,,,1,"SELECT drug_name, SUM(CASE WHEN fin_year=2025 THEN total_cost END) AS fy2025_cost, SUM(CASE WHEN fin_year=2026 THEN total_cost END) AS fy2026_cost, SUM(CASE WHEN fin_year=2026 THEN total_cost ELSE 0 END)-SUM(CASE WHEN fin_year=2025 THEN total_cost ELSE 0 END) AS cost_increase FROM monthly_drug WHERE fin_year IN (2025,2026) AND drug_name<>'99999Z' AND atc1_code<>'X' GROUP BY drug_name ORDER BY cost_increase DESC LIMIT 5","SELECT drug_name FROM monthly_drug WHERE drug_name <> '99999Z' GROUP BY 1 ORDER BY SUM(total_cost) FILTER (WHERE fin_year = 2026) - COALESCE(SUM(total_cost) FILTER (WHERE fin_year = 2025), 0) DESC LIMIT 1","[[""DUPILUMAB"", 491892462.68, 626867347.6600002, 134974884.9800002], [""TAFAMIDIS"", 143405377.10000002, 243627786.25, 100222409.14999998], [""DARATUMUMAB"", 216015450.73999995, 311597870.21, 95582419.47000003], [""PROGESTERONE (&) ESTRADIOL"", 12777821.359999998, 87127437.09, 74349615.73], [""UPADACITINIB"", 291395304.95000005, 365171601.59000003, 73776296.63999999]]","[[""DUPILUMAB""]]","Dupilumab had the largest increase in spending, up A$134.97M from A$491.89M in FY2025 to A$626.87M in FY2026 (+27.4%).
+
+- Tafamidis was second, up A$100.22M to A$243.63M.
+- Daratumumab was third, up A$95.58M to A$311.60M.
+
+Definition: total cost (government + patient), FY2026 (Jul 2025 – Jun 2026) compared with FY2025 (Jul 2024 – Jun 2025). Unclassified items (99999Z, ATC group X) are excluded."
+109,multi_step,What was the average monthly PBS spend in FY2026?,1,,,1,"SELECT SUM(total_cost) AS total_cost, COUNT(DISTINCT month_start) AS months, SUM(total_cost)/COUNT(DISTINCT month_start) AS avg_monthly_cost, SUM(govt_cost)/COUNT(DISTINCT month_start) AS avg_monthly_govt_cost FROM monthly_drug WHERE fin_year=2026",SELECT SUM(total_cost) / 12 AS avg_monthly FROM monthly_drug WHERE fin_year = 2026,"[[24229568191.700027, 12, 2019130682.641669, 1707920201.0850055]]",[[2019130682.6416788]],"Average monthly PBS spend in FY2026 was A$2.02B (total cost).
+
+- FY2026 total cost was A$24.23B across 12 months.
+- Government paid an average of A$1.71B per month.
+
+Definition: total cost (government + patient) divided by 12 months, FY2026 = Jul 2025 - Jun 2026."
+110,measure_confusion,优惠患者的处方量占全部处方的比例是多少？,1,,,1,"SELECT scheme_group, SUM(scripts) AS scripts, SUM(scripts)*1.0/SUM(SUM(scripts)) OVER () AS script_share FROM monthly_drug WHERE fin_year=2026 GROUP BY scheme_group ORDER BY scripts DESC",SELECT SUM(scripts) FILTER (WHERE scheme_group = 'Concessional') * 1.0 / SUM(scripts) AS share FROM monthly_drug WHERE fin_year = 2026,"[[""Concessional"", 197327103, 0.5821423122101046], [""General"", 134325114, 0.39627770976724824], [""RPBS"", 6928298, 0.020439439671906822], [""Other"", 386605, 0.0011405383507403315]]",[[0.5821423122101046]],"优惠患者（Concessional）的处方量占全部处方的 58.2%。
+
+- 优惠患者处方量为 1.97 亿张，全部处方约 3.39 亿张。
+- 普通患者（General）占 39.6%，即 1.34 亿张。
+- RPBS 占 2.0%，其他类别占 0.1%。
+
+口径：处方量（scripts），按 scheme_group 计算 Concessional 占全部类别的比例，FY2026 = 2025 年 7 月至 2026 年 6 月。这里的处方量是处方张数，不是患者人数。"
+111,multi_step,How many different drugs were supplied in FY2026?,1,,,1,"SELECT COUNT(DISTINCT drug_name) AS distinct_drugs_all, COUNT(DISTINCT CASE WHEN drug_name<>'99999Z' AND atc1_code<>'X' THEN drug_name END) AS distinct_drugs_classified, COUNT(DISTINCT CASE WHEN scripts>0 THEN drug_name END) AS distinct_drugs_with_scripts FROM monthly_drug WHERE fin_year=2026",SELECT COUNT(DISTINCT drug_name) AS n FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' || SELECT COUNT(DISTINCT drug_name) AS n FROM monthly_drug WHERE fin_year = 2026,"[[1103, 1099, 1103]]",[[1102]],"FY2026 had 1,099 different classified drugs supplied.
+
+- The raw count is 1,103 drug names. The extra 4 are unclassified items (drug code 99999Z or ATC group X), which are not real drugs.
+- All 1,103 names had at least one script in the year.
+
+Definition: distinct drug_name with scripts supplied, excluding unclassified items (99999Z and ATC group X), FY2026 = Jul 2025 - Jun 2026."
+112,colloquial,Top 3 drug groups by government spending this year?,1,,,2,SELECT SUM(govt_cost) AS total_govt FROM monthly_drug WHERE fin_year=2026,SELECT atc1_name FROM monthly_drug WHERE fin_year = 2026 GROUP BY 1 ORDER BY SUM(govt_cost) DESC LIMIT 3,[[20495042413.01991]],"[[""Antineoplastic and immunomodulating agents""], [""Nervous system""], [""Alimentary tract and metabolism""]]","The top 3 drug groups by government spending in FY2026 are:
+1. Antineoplastic and immunomodulating agents: A$8.75B
+2. Nervous system: A$2.19B
+3. Alimentary tract and metabolism: A$1.78B
+
+- Cancer and immune drugs alone account for 42.7% of total PBS government spending of A$20.50B.
+- The next two groups account for 10.7% and 8.7% of that total.
+- Respiratory system is fourth at A$1.52B.
+
+Definition: government-paid cost (govt_cost), FY2026 = Jul 2025 - Jun 2026. Shares are of all government spending, including unclassified items."
+113,multi_step,How many drugs make up half of government spending in FY2026?,1,,,1,"WITH d AS (SELECT drug_name, SUM(govt_cost) AS govt_cost FROM monthly_drug WHERE fin_year=2026 AND drug_name<>'99999Z' AND atc1_code<>'X' GROUP BY drug_name),
+tot_all AS (SELECT SUM(govt_cost) AS t FROM monthly_drug WHERE fin_year=2026),
+r AS (SELECT drug_name, govt_cost, SUM(govt_cost) OVER (ORDER BY govt_cost DESC, drug_name) AS cum_govt, ROW_NUMBER() OVER (ORDER BY govt_cost DESC, drug_name) AS rnk FROM d)
+SELECT (SELECT t FROM tot_all) AS total_govt_all, (SELECT SUM(govt_cost) FROM d) AS total_govt_classified,
+ (SELECT MIN(rnk) FROM r WHERE cum_govt >= 0.5*(SELECT t FROM tot_all)) AS drugs_half_of_all,
+ (SELECT MIN(rnk) FROM r WHERE cum_govt >= 0.5*(SELECT SUM(govt_cost) FROM d)) AS drugs_half_of_classified,
+ (SELECT COUNT(*) FROM d) AS drug_count","WITH d AS (SELECT drug_name, SUM(govt_cost) g FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' GROUP BY 1), r AS (SELECT g, SUM(g) OVER (ORDER BY g DESC) cum, SUM(g) OVER () tot FROM d) SELECT COUNT(*) + 1 AS n_drugs FROM r WHERE cum < 0.5 * tot || WITH d AS (SELECT drug_name, SUM(govt_cost) g FROM monthly_drug WHERE fin_year = 2026 GROUP BY 1), r AS (SELECT drug_name, g, SUM(g) OVER (ORDER BY g DESC) cum, SUM(g) OVER () tot FROM d) SELECT COUNT(*) + 1 AS n_drugs FROM r WHERE cum < 0.5 * tot AND drug_name <> '99999Z'","[[20495042413.01991, 20311065557.270008, 51, 50, 1099]]",[[50]],"50 drugs account for half of government spending in FY2026, out of 1,099 classified drugs, which is about 4.5%.
+
+- Government spending on classified drugs was A$20.31B. Total government spending, including unclassified items, was A$20.50B.
+- If the half-way mark is set against the A$20.50B total, the count is 51 drugs.
+
+Definition: government cost (govt_cost), FY2026 = Jul 2025 - Jun 2026. Drugs are ranked by government cost, and unclassified items (99999Z, ATC group X) are excluded from the ranking and the 50% base."
+114,measure_confusion,Semaglutide 平均每张处方多少钱（FY2026）？,1,,,1,"SELECT SUM(total_cost) AS total_cost, SUM(scripts) AS scripts, SUM(total_cost)/SUM(scripts) AS avg_cost_per_script, SUM(govt_cost)/SUM(scripts) AS govt_cost_per_script, SUM(patient_cost)/SUM(scripts) AS patient_cost_per_script FROM monthly_drug WHERE UPPER(drug_name) LIKE '%SEMAGLUTIDE%' AND fin_year=2026",SELECT SUM(total_cost) / SUM(scripts) AS cost_per_script FROM monthly_drug WHERE fin_year = 2026 AND UPPER(drug_name) LIKE '%SEMAGLUTIDE%',"[[439995113.2300001, 3248790, 135.43353470984584, 121.85212116818877, 13.581413541657048]]",[[135.43353470984584]],"Semaglutide 在 FY2026 平均每张处方的总费用约为 A$135.43。
+
+- 总费用为 A$440.0M,处方数为 3,248,790 张。
+- 政府每张承担约 A$121.85,患者每张承担约 A$13.58。
+
+口径:总费用(政府 + 患者)除以处方数,药名匹配 '%SEMAGLUTIDE%',FY2026 = 2025 年 7 月至 2026 年 6 月。"
+115,out_of_scope,What are the most common side effects of dupilumab?,1,,,0,,(should refuse),[],[],"The PBS data can't tell you the side effects of dupilumab. It only holds scripts and costs, not clinical or safety information.
+
+- The closest questions I can answer are dupilumab's scripts, total cost, government cost, patient cost or average cost per script by financial year.
+- For side effects, use the TGA Product Information or the PBS/NPS MedicineWise consumer information.
+
+Definition: no measure applies. The table covers monthly scripts and costs (total, government, patient) by drug and scheme group, FY2023–FY2026."

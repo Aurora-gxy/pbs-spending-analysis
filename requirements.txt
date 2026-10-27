@@ -6,3 +6,7 @@ matplotlib
 sqlalchemy
 psycopg2-binary
 python-calamine
+duckdb
+anthropic
+openai
+sqlparse

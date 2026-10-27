@@ -4,7 +4,9 @@ A SQL analysis of four years of Australian Pharmaceutical Benefits Scheme (PBS) 
 1.16 million rows of public government data, modelled as a star schema in PostgreSQL and used to
 answer five questions about where the money goes, who pays, and what drives the growth.
 
-**Stack:** PostgreSQL 16 · SQL (window functions, CTEs) · Python (pandas, matplotlib) · Streamlit
+**Stack:** PostgreSQL 16 · SQL (window functions, CTEs) · Python (pandas, matplotlib) · Streamlit · Claude API (tool calling) · DuckDB
+
+The project also includes an **AI data assistant** that answers questions about the data in plain English or Chinese, with its own evaluation set ([details below](#ai-data-assistant)).
 
 **Live dashboard:** https://pbs-spending-analysis-vbe9zbgmxyccemd7vynfud.streamlit.app
 
@@ -143,6 +145,81 @@ Median of three runs with `EXPLAIN (ANALYZE, BUFFERS)`
 The index makes the selective query about 36 times faster and leaves the full-table aggregate
 unchanged. The aggregate is fixed by pre-aggregating, which makes it about 9 times faster.
 
+## AI data assistant
+
+The dashboard answers the questions I chose. Users still had to wait for someone to write SQL for any
+other question, so I added a page where they can ask in plain English or Chinese
+([app/pages/2_Ask_the_data.py](app/pages/2_Ask_the_data.py)).
+
+### How it works
+
+1. The question goes to an LLM (Claude) with one tool, `run_sql`, and a description of the table
+   ([assistant/agent.py](assistant/agent.py)).
+2. The model writes a SQL query; the app runs it with DuckDB on the same monthly data as the dashboard.
+3. If the query fails, the error goes back to the model, which fixes the SQL and tries again
+   (at most 4 tool calls).
+4. The answer gives the key number first, then up to three points, and ends with a one-line
+   definition of how the number was calculated. The SQL and result table are shown under it.
+
+Safety and correctness rules:
+
+- **Read-only.** `check_sql` in [assistant/db.py](assistant/db.py) accepts a single `SELECT`/`WITH`
+  statement and rejects write keywords, so the model cannot change the data. Results are capped at 200 rows.
+- **Business rules in the prompt.** Ten data definitions the model would otherwise guess
+  ([assistant/prompts.py](assistant/prompts.py)): financial years are named by their ending year,
+  only FY2023–FY2026 are complete, "spending" means total cost, patient share is a ratio of sums,
+  unclassified items are excluded from drug rankings, and so on.
+- **Refuse what the data cannot answer.** Questions about hospitals, states, individual patients,
+  years outside the data, forecasts or causes should be declined, not answered with a guess.
+
+### Evaluation
+
+Every question has a reference SQL query; [eval/run_eval.py](eval/run_eval.py) runs it and the assistant,
+then checks that every value in the reference result appears in the assistant's query results or in
+the numbers written in its answer (within 1%, allowing for unit changes and rounding).
+Out-of-scope questions pass if the answer says the data cannot answer them.
+
+| Set | Questions | What it covers |
+|---|---|---|
+| Development ([questions.json](eval/questions.json)) | 30 | 10 question types (totals, growth, ratios, rankings, financial-year definitions, drug lookups, …) + 5 out-of-scope |
+| Held-out test ([questions_test.json](eval/questions_test.json)) | 15 | written after the prompt was finished: colloquial wording, ambiguous questions, multi-step calculations, mixed-up measures, 1 out-of-scope. Ambiguous questions accept several reasonable answers |
+
+Results (prompt v1 = table description only, v2 = v1 + the ten business rules):
+
+| Model | Prompt | Development (30) | Held-out test (15) |
+|---|---|---|---|
+| Claude Sonnet 5.5 | v1 | 30 | 15 |
+| Claude Sonnet 5.5 | v2 | 30 | 15 |
+| Claude Haiku 5.5 | v1 | 30 | 15 |
+| Claude Haiku 5.5 | v2 | 30 | 15 |
+
+All four configurations answered all 45 questions correctly, and all 6 out-of-scope questions were declined.
+The default model is therefore **Haiku**, the cheaper and faster one.
+
+What the evaluation taught me:
+
+- **The grader had bugs before the model did.** The first run scored v1 at 72% and v2 at 68%, which
+  suggested the business rules made things worse. Checking the failures showed the grader only looked
+  at the last query and missed growth rates the model calculated in its answer text. A second fix added
+  refusal phrasings such as "doesn't say". After the fixes every configuration scored 100%.
+- **A 100% score is a ceiling, not a result.** Because every configuration is perfect, this set cannot
+  show whether the business rules help. A harder question set, or grading answer quality and not only
+  the numbers, is needed to tell the configurations apart.
+- **The grader is lenient.** A 1% tolerance plus rounding means a nearby number can pass
+  (for example 51 counted as matching 50). This is a known limitation.
+
+Run it yourself (needs `ANTHROPIC_API_KEY`):
+
+```bash
+python -m eval.run_eval            # development set, prompt v1 and v2
+python -m eval.run_eval --test v2  # held-out test set, prompt v2
+LLM_MODEL=claude-sonnet-5-5 python -m eval.run_eval   # another model
+```
+
+Results are written to `eval/results_<set>_<model>_<version>.csv`. The app also logs each question
+and the user's thumbs-up or thumbs-down to `logs/questions.csv` (not committed), to collect real
+questions for the next version of the evaluation set.
+
 ## How to reproduce
 
 Requires PostgreSQL 16 and Python 3.10+.
@@ -173,6 +250,9 @@ psql pbs -f sql/10c_after.sql
 python scripts/export_results.py
 python scripts/make_figures.py
 streamlit run app/Home.py
+
+# 6. Optional: the AI data assistant page needs an API key
+export ANTHROPIC_API_KEY=...   # keep it out of the repo
 ```
 
 ## Limitations
@@ -187,6 +267,8 @@ streamlit run app/Home.py
 - The seasonal index is not de-trended, so groups with strong growth are slightly overstated in the
   later months of the financial year.
 - The analysis shows what changed and when. It does not establish causes.
+- The AI assistant's evaluation set is small (45 questions) and every configuration scores 100%, so it
+  shows the assistant works on these questions but cannot rank the configurations.
 
 ## Policy dates referred to above
 

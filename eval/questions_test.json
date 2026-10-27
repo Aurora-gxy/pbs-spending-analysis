@@ -1,0 +1,128 @@
+[
+ {
+  "id": 101,
+  "type": "colloquial",
+  "q": "去年药费涨了多少？",
+  "sql_any": [
+   "SELECT (SUM(total_cost) FILTER (WHERE fin_year = 2026) / SUM(total_cost) FILTER (WHERE fin_year = 2025) - 1) * 100 AS growth_pct FROM monthly_drug",
+   "SELECT SUM(total_cost) FILTER (WHERE fin_year = 2026) - SUM(total_cost) FILTER (WHERE fin_year = 2025) AS increase FROM monthly_drug",
+   "SELECT (SUM(total_cost) FILTER (WHERE cal_year = 2025) / SUM(total_cost) FILTER (WHERE cal_year = 2024) - 1) * 100 AS growth_pct FROM monthly_drug",
+   "SELECT SUM(total_cost) FILTER (WHERE cal_year = 2025) - SUM(total_cost) FILTER (WHERE cal_year = 2024) AS increase FROM monthly_drug"
+  ]
+ },
+ {
+  "id": 102,
+  "type": "ambiguous",
+  "q": "哪类药最贵？",
+  "sql_any": [
+   "SELECT atc1_name FROM monthly_drug WHERE fin_year = 2026 GROUP BY 1 ORDER BY SUM(total_cost) DESC LIMIT 1",
+   "SELECT atc1_name FROM monthly_drug WHERE fin_year = 2026 AND atc1_code <> 'X' GROUP BY 1 ORDER BY SUM(total_cost) / SUM(scripts) DESC LIMIT 1"
+  ]
+ },
+ {
+  "id": 103,
+  "type": "multi_step",
+  "q": "前 10 种药占 FY2026 总支出的百分之几？",
+  "sql_any": [
+   "WITH d AS (SELECT drug_name, SUM(total_cost) c FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' GROUP BY 1) SELECT (SELECT SUM(c) FROM (SELECT c FROM d ORDER BY c DESC LIMIT 10)) / (SELECT SUM(total_cost) FROM monthly_drug WHERE fin_year = 2026) AS share"
+  ]
+ },
+ {
+  "id": 104,
+  "type": "measure_confusion",
+  "q": "On average, how much does the government pay per prescription in FY2026?",
+  "sql_any": [
+   "SELECT SUM(govt_cost) / SUM(scripts) AS govt_per_script FROM monthly_drug WHERE fin_year = 2026"
+  ]
+ },
+ {
+  "id": 105,
+  "type": "measure_confusion",
+  "q": "抗癌药的处方量占比是多少？",
+  "sql_any": [
+   "SELECT SUM(scripts) FILTER (WHERE atc1_code = 'L') * 1.0 / SUM(scripts) AS share FROM monthly_drug WHERE fin_year = 2026"
+  ]
+ },
+ {
+  "id": 106,
+  "type": "colloquial",
+  "q": "How much did patients pay out of their own pocket last financial year?",
+  "sql_any": [
+   "SELECT SUM(patient_cost) AS patient_cost FROM monthly_drug WHERE fin_year = 2026"
+  ]
+ },
+ {
+  "id": 107,
+  "type": "colloquial",
+  "q": "Is heart medication spending going up?",
+  "sql_any": [
+   "SELECT (SUM(total_cost) FILTER (WHERE fin_year = 2026) / SUM(total_cost) FILTER (WHERE fin_year = 2025) - 1) * 100 AS growth_pct FROM monthly_drug WHERE atc1_code = 'C'",
+   "SELECT (SUM(total_cost) FILTER (WHERE fin_year = 2026) / SUM(total_cost) FILTER (WHERE fin_year = 2023) - 1) * 100 AS growth_pct FROM monthly_drug WHERE atc1_code = 'C'",
+   "SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE atc1_code = 'C' AND fin_year = 2026"
+  ]
+ },
+ {
+  "id": 108,
+  "type": "multi_step",
+  "q": "Which drug's spending increased the most in dollars from FY2025 to FY2026?",
+  "sql_any": [
+   "SELECT drug_name FROM monthly_drug WHERE drug_name <> '99999Z' GROUP BY 1 ORDER BY SUM(total_cost) FILTER (WHERE fin_year = 2026) - COALESCE(SUM(total_cost) FILTER (WHERE fin_year = 2025), 0) DESC LIMIT 1"
+  ]
+ },
+ {
+  "id": 109,
+  "type": "multi_step",
+  "q": "What was the average monthly PBS spend in FY2026?",
+  "sql_any": [
+   "SELECT SUM(total_cost) / 12 AS avg_monthly FROM monthly_drug WHERE fin_year = 2026"
+  ]
+ },
+ {
+  "id": 110,
+  "type": "measure_confusion",
+  "q": "优惠患者的处方量占全部处方的比例是多少？",
+  "sql_any": [
+   "SELECT SUM(scripts) FILTER (WHERE scheme_group = 'Concessional') * 1.0 / SUM(scripts) AS share FROM monthly_drug WHERE fin_year = 2026"
+  ]
+ },
+ {
+  "id": 111,
+  "type": "multi_step",
+  "q": "How many different drugs were supplied in FY2026?",
+  "sql_any": [
+   "SELECT COUNT(DISTINCT drug_name) AS n FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z'",
+   "SELECT COUNT(DISTINCT drug_name) AS n FROM monthly_drug WHERE fin_year = 2026"
+  ]
+ },
+ {
+  "id": 112,
+  "type": "colloquial",
+  "q": "Top 3 drug groups by government spending this year?",
+  "sql_any": [
+   "SELECT atc1_name FROM monthly_drug WHERE fin_year = 2026 GROUP BY 1 ORDER BY SUM(govt_cost) DESC LIMIT 3"
+  ]
+ },
+ {
+  "id": 113,
+  "type": "multi_step",
+  "q": "How many drugs make up half of government spending in FY2026?",
+  "sql_any": [
+   "WITH d AS (SELECT drug_name, SUM(govt_cost) g FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' GROUP BY 1), r AS (SELECT g, SUM(g) OVER (ORDER BY g DESC) cum, SUM(g) OVER () tot FROM d) SELECT COUNT(*) + 1 AS n_drugs FROM r WHERE cum < 0.5 * tot",
+   "WITH d AS (SELECT drug_name, SUM(govt_cost) g FROM monthly_drug WHERE fin_year = 2026 GROUP BY 1), r AS (SELECT drug_name, g, SUM(g) OVER (ORDER BY g DESC) cum, SUM(g) OVER () tot FROM d) SELECT COUNT(*) + 1 AS n_drugs FROM r WHERE cum < 0.5 * tot AND drug_name <> '99999Z'"
+  ]
+ },
+ {
+  "id": 114,
+  "type": "measure_confusion",
+  "q": "Semaglutide 平均每张处方多少钱（FY2026）？",
+  "sql_any": [
+   "SELECT SUM(total_cost) / SUM(scripts) AS cost_per_script FROM monthly_drug WHERE fin_year = 2026 AND UPPER(drug_name) LIKE '%SEMAGLUTIDE%'"
+  ]
+ },
+ {
+  "id": 115,
+  "type": "out_of_scope",
+  "q": "What are the most common side effects of dupilumab?",
+  "expect": "refuse"
+ }
+]

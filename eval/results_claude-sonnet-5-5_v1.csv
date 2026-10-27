@@ -1,0 +1,200 @@
+id,type,question,correct,auto_tag,error_type,steps,model_sql,gold_sql,model_rows,gold_rows,answer
+1,basic,What was the total PBS cost in FY2026?,1,,,1,"SELECT SUM(total_cost) AS total_cost, SUM(govt_cost) AS govt_cost, SUM(patient_cost) AS patient_cost, SUM(scripts) AS scripts, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months FROM monthly_drug WHERE fin_year=2026",SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2026,"[[24229568191.700012, 20495042413.020027, 3734525778.6799917, 338967120, ""2025-07-01"", ""2026-06-01"", 12]]",[[24229568191.700146]],"Total PBS cost in FY2026 was A$24.23B.
+
+- The government paid A$20.50B (84.6%). Patients paid A$3.73B (15.4%).
+- There were 339.0M scripts supplied across all 12 months.
+
+Definition: total cost (government + patient), FY2026 = Jul 2025 - Jun 2026."
+2,basic,How many prescriptions were supplied in FY2025?,1,,,1,"SELECT SUM(scripts) AS total_scripts, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months FROM monthly_drug WHERE fin_year = 2025",SELECT SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year = 2025,"[[335117915, ""2024-07-01"", ""2025-06-01"", 12]]",[[335117915]],"335.1M prescriptions (335,117,915) were supplied in FY2025.
+
+- The figure covers all 12 months, July 2024 to June 2025, and all scheme groups.
+- It counts prescriptions (scripts), not patients.
+
+Definition: number of prescriptions supplied (scripts), all scheme groups, FY2025 = Jul 2024 - Jun 2025."
+3,basic,How much did the government pay in FY2024?,1,,,1,"SELECT SUM(govt_cost) AS govt_cost, SUM(total_cost) AS total_cost, SUM(patient_cost) AS patient_cost, SUM(scripts) AS scripts, MIN(month_start) AS first_month, MAX(month_start) AS last_month FROM monthly_drug WHERE fin_year = 2024",SELECT SUM(govt_cost) AS govt_cost FROM monthly_drug WHERE fin_year = 2024,"[[18111438645.610027, 21686018976.160156, 3574580330.5499377, 339574810, ""2023-07-01"", ""2024-06-01""]]",[[18111438645.610027]],"The government paid A$18.11B in FY2024.
+
+- Total cost was A$21.69B, so the government paid 83.5% of it.
+- Patients paid A$3.57B, which is 16.5%.
+- That covers 339.6M scripts.
+
+Definition: government-paid cost (govt_cost), FY2024 = Jul 2023 - Jun 2024, all scheme groups."
+4,fy_definition,What was the total cost in the 2024-25 financial year?,1,,,1,"SELECT fin_year, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months, SUM(total_cost) AS total_cost, SUM(govt_cost) AS govt_cost, SUM(patient_cost) AS patient_cost, SUM(scripts) AS scripts FROM monthly_drug GROUP BY fin_year ORDER BY fin_year",SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2025,"[[2023, ""2022-07-01"", ""2023-06-01"", 12, 20478926759.65993, 17044738552.619923, 3434188207.0400157, 335875392], [2024, ""2023-07-01"", ""2024-06-01"", 12, 21686018976.160156, 18111438645.610027, 3574580330.5499377, 339574810], [2025, ""2024-07-01"", ""2025-06-01"", 12, 23135173234.31012, 19476630579.51008, 3658542654.7999735, 335117915], [2026, ""2025-07-01"", ""2026-06-01"", 12, 24229568191.700146, 20495042413.01991, 3734525778.679942, 338967120], [2027, ""2026-07-01"", ""2026-07-01"", 1, 2199969429.8500004, 1879025762.620002, 320943667.2299998, 29963048]]",[[23135173234.31012]],"Total cost in FY2025 was A$23.14B, up 6.7% from A$21.69B in FY2024.
+- Government paid A$19.48B (84.2%). Patients paid A$3.66B (15.8%).
+- There were 335.1M scripts, 1.3% fewer than FY2024's 339.6M.
+
+Definition: total cost (government + patient), FY2025 = Jul 2024 - Jun 2025."
+5,fy_definition,2025/26 财年的政府支出是多少？,1,,,1,"select sum(govt_cost) as govt_cost, sum(total_cost) as total_cost, min(month_start) as first_month, max(month_start) as last_month, count(distinct month_start) as months from monthly_drug where fin_year=2026",SELECT SUM(govt_cost) AS govt_cost FROM monthly_drug WHERE fin_year = 2026,"[[20495042413.020035, 24229568191.699913, ""2025-07-01"", ""2026-06-01"", 12]]",[[20495042413.01991]],"2025/26 财年（FY2026）政府支出为 A$20.50B。
+
+- 同期总费用（政府加患者）为 A$24.23B，政府支付约占 84.6%。
+- 数据覆盖完整的 12 个月（2025年7月至2026年6月）。
+
+口径：政府支付金额（govt_cost），FY2026 = 2025年7月至2026年6月。"
+6,latest_year,Which drug group had the highest total cost in the latest year?,1,,,2,"SELECT atc1_name, SUM(total_cost) AS total_cost, SUM(total_cost)/SUM(SUM(total_cost)) OVER () AS share_of_total, SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year=2026 GROUP BY atc1_name ORDER BY total_cost DESC LIMIT 5","SELECT atc1_name, SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2026 GROUP BY 1 ORDER BY 2 DESC LIMIT 1","[[""Antineoplastic and immunomodulating agents"", 8847757217.800003, 0.36516363592607737, 6826541], [""Nervous system"", 3094193380.4599957, 0.12770319949490197, 80261877], [""Cardiovascular system"", 2424487939.8799987, 0.10006319224089695, 100591573], [""Alimentary tract and metabolism"", 2293788873.579995, 0.09466899514807482, 52663075], [""Respiratory system"", 1665238865.2499995, 0.06872755024253542, 12828389]]","[[""Antineoplastic and immunomodulating agents"", 8847757217.800003]]","Antineoplastic and immunomodulating agents had the highest total cost in FY2026, at A$8.85B. That is 36.5% of all PBS spending.
+
+- Nervous system was second at A$3.09B (12.8%).
+- Cardiovascular system was third at A$2.42B (10.0%). It had the most scripts, at 100.6M.
+- The top group had only 6.8M scripts, so its cost comes from a high cost per script and not from volume.
+
+Definition: total cost (government + patient) by ATC level-1 drug group, FY2026 = Jul 2025 - Jun 2026, the latest full financial year. The table has only one month of FY2027 (Jul 2026), so I left it out."
+7,latest_year,How many prescriptions were there in the most recent year?,1,,,1,"SELECT fin_year, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months, SUM(scripts) AS total_scripts FROM monthly_drug GROUP BY fin_year ORDER BY fin_year",SELECT SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year = 2026,"[[2023, ""2022-07-01"", ""2023-06-01"", 12, 335875392], [2024, ""2023-07-01"", ""2024-06-01"", 12, 339574810], [2025, ""2024-07-01"", ""2025-06-01"", 12, 335117915], [2026, ""2025-07-01"", ""2026-06-01"", 12, 338967120], [2027, ""2026-07-01"", ""2026-07-01"", 1, 29963048]]",[[338967120]],"FY2026 had 338,967,120 prescriptions (about 339.0M).
+
+- That is 3.8M more than FY2025 (335,117,915), a rise of 1.1%.
+- The table also has July 2026, which is 1 month of FY2027 (29,963,048 scripts). I left it out because it is a partial year.
+
+Definition: prescriptions supplied (scripts, not patients), all drugs and scheme groups, FY2026 = Jul 2025 - Jun 2026."
+8,ratio,What share of total cost did patients pay in FY2026?,1,,,1,"SELECT SUM(patient_cost) AS patient_cost, SUM(total_cost) AS total_cost, SUM(govt_cost) AS govt_cost, SUM(patient_cost)/SUM(total_cost)*100 AS patient_share_pct, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months FROM monthly_drug WHERE fin_year=2026",SELECT SUM(patient_cost) / SUM(total_cost) AS patient_share FROM monthly_drug WHERE fin_year = 2026,"[[3734525778.680017, 24229568191.699913, 20495042413.020016, 15.413092586434606, ""2025-07-01"", ""2026-06-01"", 12]]",[[0.1541309258643415]],"Patients paid 15.4% of total PBS cost in FY2026 (A$3.73B of A$24.23B).
+
+- The government paid A$20.50B, which is 84.6% of the total.
+- The data covers all 12 months, Jul 2025 to Jun 2026.
+
+Definition: patient cost ÷ total cost (government + patient), all drugs and scheme groups, FY2026 = Jul 2025 - Jun 2026."
+9,ratio,What was the average total cost per prescription in FY2023 and FY2026?,1,,,1,"SELECT fin_year, SUM(total_cost) AS total_cost, SUM(scripts) AS total_scripts, SUM(total_cost)/SUM(scripts) AS cost_per_script, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months FROM monthly_drug WHERE fin_year IN (2023,2026) GROUP BY fin_year ORDER BY fin_year","SELECT fin_year, SUM(total_cost) / SUM(scripts) AS cost_per_script FROM monthly_drug WHERE fin_year IN (2023, 2026) GROUP BY 1 ORDER BY 1","[[2023, 20478926759.65993, 335875392, 60.971798611730186, ""2022-07-01"", ""2023-06-01"", 12], [2026, 24229568191.700146, 338967120, 71.48058546711005, ""2025-07-01"", ""2026-06-01"", 12]]","[[2023, 60.971798611730186], [2026, 71.48058546711005]]","Average total cost per prescription rose from A$60.97 in FY2023 to A$71.48 in FY2026, an increase of A$10.51 (17.2%).
+- FY2023: A$20.48B across 335.9M scripts.
+- FY2026: A$24.23B across 339.0M scripts.
+- Total cost grew 18.3% while scripts grew only 0.9%, so most of the increase comes from a higher cost per script, not more scripts.
+
+Definition: total cost (government + patient) divided by scripts, all drugs and scheme groups. FY2023 = Jul 2022 - Jun 2023, FY2026 = Jul 2025 - Jun 2026."
+10,ratio,患者自付比例在 FY2023 是多少？,1,,,2,"SELECT scheme_group, SUM(patient_cost) AS patient_cost, SUM(total_cost) AS total_cost, SUM(patient_cost)/SUM(total_cost) AS patient_share FROM monthly_drug WHERE fin_year=2023 GROUP BY scheme_group ORDER BY total_cost DESC",SELECT SUM(patient_cost) / SUM(total_cost) AS patient_share FROM monthly_drug WHERE fin_year = 2023,"[[""Concessional"", 876289310.3599991, 11340255510.480001, 0.07727244853964567], [""General"", 2529891694.839997, 8662125060.730024, 0.29206363070297015], [""RPBS"", 28007201.840000205, 395781823.3199993, 0.07076424481817524], [""Other"", 0.0, 80764365.12999997, 0.0]]",[[0.167693758923187]],"FY2023 的患者自付比例为 16.8%（患者自付 A$3.43B，占总费用 A$20.48B）。
+
+- 按计划类别：General 为 29.2%，Concessional 为 7.7%，RPBS 为 7.1%，Other 为 0.0%。
+- General 的自付金额为 A$2.53B，占全部患者自付的约四分之三。
+
+口径：患者自付费用 ÷ 总费用（政府 + 患者），FY2023 = 2022 年 7 月至 2023 年 6 月，全部药物和计划类别。"
+11,growth,By what percentage did total cost grow from FY2023 to FY2026?,1,,,1,"SELECT fin_year, SUM(total_cost) AS total_cost, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months FROM monthly_drug GROUP BY fin_year ORDER BY fin_year",SELECT (SUM(total_cost) FILTER (WHERE fin_year = 2026) / SUM(total_cost) FILTER (WHERE fin_year = 2023) - 1) * 100 AS growth_pct FROM monthly_drug,"[[2023, 20478926759.65993, ""2022-07-01"", ""2023-06-01"", 12], [2024, 21686018976.160156, ""2023-07-01"", ""2024-06-01"", 12], [2025, 23135173234.31012, ""2024-07-01"", ""2025-06-01"", 12], [2026, 24229568191.700146, ""2025-07-01"", ""2026-06-01"", 12], [2027, 2199969429.8500004, ""2026-07-01"", ""2026-07-01"", 1]]",[[18.314638633448087]],"Total cost grew 18.3% from FY2023 (A$20.48B) to FY2026 (A$24.23B).
+
+- The increase is A$3.75B over the three years.
+- Year by year: FY2024 was A$21.69B and FY2025 was A$23.14B.
+
+Definition: total cost (government + patient), FY2023 = Jul 2022 - Jun 2023 and FY2026 = Jul 2025 - Jun 2026. Both are full 12-month years."
+12,growth,"How much did prescription volume grow from FY2023 to FY2026, in percent?",1,,,1,"SELECT fin_year, SUM(scripts) AS total_scripts, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months FROM monthly_drug GROUP BY fin_year ORDER BY fin_year",SELECT (SUM(scripts) FILTER (WHERE fin_year = 2026) * 1.0 / SUM(scripts) FILTER (WHERE fin_year = 2023) - 1) * 100 AS growth_pct FROM monthly_drug,"[[2023, 335875392, ""2022-07-01"", ""2023-06-01"", 12], [2024, 339574810, ""2023-07-01"", ""2024-06-01"", 12], [2025, 335117915, ""2024-07-01"", ""2025-06-01"", 12], [2026, 338967120, ""2025-07-01"", ""2026-06-01"", 12], [2027, 29963048, ""2026-07-01"", ""2026-07-01"", 1]]",[[0.9204985163069113]],"Prescription volume grew 0.9% from FY2023 to FY2026, from 335.88M to 338.97M scripts (+3.09M).
+
+- FY2024 was 339.57M scripts (+1.1% on FY2023).
+- FY2025 was 335.12M scripts (-1.3% on FY2024).
+- FY2026 was 338.97M scripts (+1.1% on FY2025).
+
+Definition: total scripts supplied (all drugs and scheme groups), FY2023 = Jul 2022 - Jun 2023 vs FY2026 = Jul 2025 - Jun 2026. Scripts are prescriptions, not patients."
+13,growth,Which drug group's total cost grew fastest between FY2025 and FY2026 (in percent)?,1,,,1,"select atc1_code, atc1_name, sum(case when fin_year=2025 then total_cost end) as cost_fy2025, sum(case when fin_year=2026 then total_cost end) as cost_fy2026, sum(case when fin_year=2026 then total_cost end)/sum(case when fin_year=2025 then total_cost end)-1 as growth_pct, count(distinct case when fin_year=2026 then month_start end) as months_fy2026 from monthly_drug group by all order by growth_pct desc","SELECT atc1_name, (SUM(total_cost) FILTER (WHERE fin_year = 2026) / SUM(total_cost) FILTER (WHERE fin_year = 2025) - 1) * 100 AS growth_pct FROM monthly_drug WHERE atc1_code <> 'X' GROUP BY 1 ORDER BY 2 DESC LIMIT 1","[[""G"", ""Genito-urinary system and sex hormones"", 513076247.99999976, 762990625.78, 0.48709013281004654, 12], [""X"", ""Unclassified"", 129214327.93999995, 187618916.65, 0.4519977748684336, 12], [""P"", ""Antiparasitic products, insecticides and repellents"", 9395471.439999998, 11152706.079999996, 0.18702995919063747, 12], [""D"", ""Dermatologicals"", 617429880.7999992, 727613931.1000001, 0.17845597326328977, 12], [""N"", ""Nervous system"", 2809224648.190003, 3094193380.4599957, 0.10144035025949227, 12]]","[[""Genito-urinary system and sex hormones"", 48.70901328100465]]","Genito-urinary system and sex hormones (ATC G) grew fastest, up 48.7% from A$513.1M in FY2025 to A$763.0M in FY2026.
+
+- Second was Unclassified (X), up 45.2%, from A$129.2M to A$187.6M. It is a small, mixed category.
+- Antineoplastic and immunomodulating agents (L) is the largest group at A$8.85B. It grew 6.3%, which is A$520.9M in dollar terms.
+- Antiinfectives for systemic use (J) fell the most, down 21.4%.
+
+Definition: total cost (government + patient), ATC level-1 drug groups, all scheme groups, FY2026 = Jul 2025 – Jun 2026 versus FY2025 = Jul 2024 – Jun 2025."
+14,ranking,What were the top 5 drugs by total cost in FY2026?,1,,,2,"select sum(total_cost) as all_total_cost, min(month_start) as first_month, max(month_start) as last_month, count(distinct month_start) as months from monthly_drug where fin_year=2026","SELECT drug_name, SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' GROUP BY 1 ORDER BY 2 DESC LIMIT 5","[[24229568191.699905, ""2025-07-01"", ""2026-06-01"", 12]]","[[""PEMBROLIZUMAB"", 664999862.6400002], [""DUPILUMAB"", 626867347.6600002], [""ELEXACAFTOR + TEZACAFTOR + IVACAFTOR (&) IVACAFTOR"", 619972304.7700001], [""NIVOLUMAB"", 458529242.44999987], [""SEMAGLUTIDE"", 439995113.2300001]]","Pembrolizumab was the top drug in FY2026 at A$665.0M total cost. The top 5 together cost A$2.81B, which is 11.6% of the A$24.23B total.
+
+1. Pembrolizumab: A$665.0M (79,055 scripts)
+2. Dupilumab: A$626.9M (360,923 scripts)
+3. Elexacaftor + tezacaftor + ivacaftor (&) ivacaftor: A$620.0M (30,501 scripts)
+4. Nivolumab: A$458.5M (64,687 scripts)
+5. Semaglutide: A$440.0M (3,248,790 scripts)
+
+- Semaglutide has the most scripts of the five, but ranks fifth on cost.
+
+Definition: total cost (government + patient), FY2026 = Jul 2025 - Jun 2026, all scheme groups combined."
+15,ranking,Which drug had the most prescriptions in FY2026?,1,,,2,"select sum(scripts) as all_scripts, count(distinct month_start) as months, min(month_start) as first_month, max(month_start) as last_month from monthly_drug where fin_year=2026","SELECT drug_name, SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' GROUP BY 1 ORDER BY 2 DESC LIMIT 1","[[338967120, 12, ""2025-07-01"", ""2026-06-01""]]","[[""ROSUVASTATIN"", 16712991]]","Rosuvastatin had the most prescriptions in FY2026, with 16.71M scripts. That is 4.9% of all PBS scripts (338.97M).
+
+- Pantoprazole was second with 11.11M scripts, and atorvastatin was third with 10.86M.
+- Rosuvastatin's total cost was A$308.96M.
+
+Definition: number of prescriptions (scripts) supplied, all scheme groups, FY2026 = Jul 2025 - Jun 2026."
+16,ranking,FY2026 政府支出最高的 3 种药是什么？,1,,,2,"SELECT SUM(govt_cost) AS total_govt_cost, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months FROM monthly_drug WHERE fin_year=2026","SELECT drug_name, SUM(govt_cost) AS govt_cost FROM monthly_drug WHERE fin_year = 2026 AND drug_name <> '99999Z' GROUP BY 1 ORDER BY 2 DESC LIMIT 3","[[20495042413.020008, ""2025-07-01"", ""2026-06-01"", 12]]","[[""PEMBROLIZUMAB"", 664685825.0399998], [""ELEXACAFTOR + TEZACAFTOR + IVACAFTOR (&) IVACAFTOR"", 619587610.57], [""DUPILUMAB"", 619350821.4600002]]","FY2026 政府支出最高的 3 种药是：pembrolizumab（A$664.7M）、elexacaftor + tezacaftor + ivacaftor 与 ivacaftor 复方（A$619.6M）、dupilumab（A$619.4M）。
+
+- 3 种药合计 A$1.90B，占 FY2026 政府总支出 A$20.50B 的 9.3%。
+- 第 2 名和第 3 名只差约 A$0.2M。
+- 处方量差别很大：pembrolizumab 79,055 张，elexacaftor 复方 30,501 张，dupilumab 360,923 张。
+
+口径：政府支出（govt_cost，不含患者自付），FY2026 = 2025年7月至2026年6月，按药物通用名汇总，包含所有 scheme 组。"
+17,drug_lookup,How much was spent on semaglutide in FY2026?,1,,,2,SELECT DISTINCT drug_name FROM monthly_drug WHERE drug_name ILIKE '%SEMAGLUTIDE%',SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2026 AND UPPER(drug_name) LIKE '%SEMAGLUTIDE%',"[[""SEMAGLUTIDE""]]",[[439995113.2300001]],"Semaglutide cost A$440.0M in total in FY2026.
+
+- The government paid A$395.9M (90.0%). Patients paid A$44.1M (10.0%).
+- There were 3,248,790 scripts, which is about A$135 per script.
+- The data covers all 12 months, Jul 2025 to Jun 2026.
+
+Definition: total cost (government + patient) for SEMAGLUTIDE across all scheme groups, FY2026 = Jul 2025 - Jun 2026."
+18,drug_lookup,How many scripts of pembrolizumab were supplied in FY2025?,1,,,1,"SELECT SUM(scripts) AS total_scripts, SUM(total_cost) AS total_cost, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months FROM monthly_drug WHERE drug_name='PEMBROLIZUMAB' AND fin_year=2025",SELECT SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year = 2025 AND UPPER(drug_name) LIKE '%PEMBROLIZUMAB%',"[[80712, 685189431.5200001, ""2024-07-01"", ""2025-06-01"", 12]]",[[80712]],"Pembrolizumab had 80,712 scripts supplied in FY2025.
+
+- Total cost for those scripts was A$685.2M.
+- The data covers all 12 months, Jul 2024 to Jun 2025.
+
+Definition: number of prescriptions supplied (scripts), all scheme groups combined, FY2025 = Jul 2024 - Jun 2025."
+19,category,What share of FY2026 total cost went to cancer and immune drugs?,1,,,1,"SELECT atc1_code, atc1_name, SUM(total_cost) AS total_cost, SUM(total_cost)/SUM(SUM(total_cost)) OVER () AS cost_share, MIN(month_start) AS first_month, MAX(month_start) AS last_month FROM monthly_drug WHERE fin_year=2026 GROUP BY atc1_code, atc1_name ORDER BY total_cost DESC",SELECT SUM(total_cost) FILTER (WHERE atc1_code = 'L') / SUM(total_cost) AS share FROM monthly_drug WHERE fin_year = 2026,"[[""L"", ""Antineoplastic and immunomodulating agents"", 8847757217.800003, 0.36516363592607753, ""2025-07-01"", ""2026-06-01""], [""N"", ""Nervous system"", 3094193380.4599957, 0.127703199494902, ""2025-07-01"", ""2026-06-01""], [""C"", ""Cardiovascular system"", 2424487939.8799987, 0.10006319224089698, ""2025-07-01"", ""2026-06-01""], [""A"", ""Alimentary tract and metabolism"", 2293788873.579995, 0.09466899514807485, ""2025-07-01"", ""2026-06-01""], [""R"", ""Respiratory system"", 1665238865.2499995, 0.06872755024253543, ""2025-07-01"", ""2026-06-01""]]",[[0.36516363592607515]],"Cancer and immune drugs (ATC group L, antineoplastic and immunomodulating agents) took 36.5% of FY2026 total cost, or A$8.85B of about A$24.23B.
+
+- They are the largest drug group by cost. The next largest is nervous system drugs at 12.8%, then cardiovascular at 10.0%.
+- I mapped ""cancer and immune drugs"" to ATC group L. Hormone therapies and other groups are not included.
+
+Definition: total cost (government + patient), FY2026 = Jul 2025 - Jun 2026, ATC level-1 group L as a share of all drugs and scheme groups."
+20,category,Which drug group had the most prescriptions in FY2026?,1,,,1,"SELECT atc1_name, atc1_code, SUM(scripts) AS total_scripts, SUM(total_cost) AS total_cost, MIN(month_start) AS first_month, MAX(month_start) AS last_month FROM monthly_drug WHERE fin_year=2026 GROUP BY 1,2 ORDER BY total_scripts DESC","SELECT atc1_name, SUM(scripts) AS scripts FROM monthly_drug WHERE fin_year = 2026 GROUP BY 1 ORDER BY 2 DESC LIMIT 1","[[""Cardiovascular system"", ""C"", 100591573, 2424487939.8799987, ""2025-07-01"", ""2026-06-01""], [""Nervous system"", ""N"", 80261877, 3094193380.4599957, ""2025-07-01"", ""2026-06-01""], [""Alimentary tract and metabolism"", ""A"", 52663075, 2293788873.579995, ""2025-07-01"", ""2026-06-01""], [""Antiinfectives for systemic use"", ""J"", 24145597, 1164162843.8600016, ""2025-07-01"", ""2026-06-01""], [""Blood and blood forming organs"", ""B"", 13235708, 1018477444.0900011, ""2025-07-01"", ""2026-06-01""]]","[[""Cardiovascular system"", 100591573]]","Cardiovascular system had the most prescriptions in FY2026, at 100.6M scripts.
+
+- Nervous system was second with 80.3M scripts, and Alimentary tract and metabolism third with 52.7M.
+- Cardiovascular was about 29.7% of all scripts (roughly 339.0M in total).
+- Cardiovascular's total cost was A$2.42B. Antineoplastic and immunomodulating agents had only 6.8M scripts but the highest cost, at A$8.85B.
+
+Definition: number of prescriptions supplied (scripts), by ATC level-1 drug group, FY2026 = Jul 2025 - Jun 2026."
+21,scheme,How much did concessional patients' prescriptions cost in total in FY2026?,1,,,1,"SELECT fin_year, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months, SUM(total_cost) AS total_cost, SUM(govt_cost) AS govt_cost, SUM(patient_cost) AS patient_cost, SUM(scripts) AS scripts FROM monthly_drug WHERE scheme_group='Concessional' AND fin_year IN (2025,2026) GROUP BY fin_year ORDER BY fin_year",SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE fin_year = 2026 AND scheme_group = 'Concessional',"[[2025, ""2024-07-01"", ""2025-06-01"", 12, 12399080662.550034, 11474950091.329973, 924130571.2200052, 197147976], [2026, ""2025-07-01"", ""2026-06-01"", 12, 12853888987.709978, 11922520721.030071, 931368266.6800011, 197327103]]",[[12853888987.709978]],"Concessional prescriptions cost A$12.85B in total in FY2026.
+
+- The government paid A$11.92B and patients paid A$931.4M.
+- That covers 197.3M scripts.
+- Total cost is up 3.7% on FY2025, when it was A$12.40B.
+
+Definition: total cost (government + patient), scheme group ""Concessional"", FY2026 = Jul 2025 - Jun 2026."
+22,scheme,What was the patient share of cost for General patients in FY2026?,1,,,1,"SELECT SUM(patient_cost) AS patient_cost, SUM(total_cost) AS total_cost, SUM(patient_cost)/SUM(total_cost) AS patient_share, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months FROM monthly_drug WHERE scheme_group='General' AND fin_year=2026",SELECT SUM(patient_cost) / SUM(total_cost) AS patient_share FROM monthly_drug WHERE fin_year = 2026 AND scheme_group = 'General',"[[2773634815.4399996, 10768615673.769958, 0.25756651546177656, ""2025-07-01"", ""2026-06-01"", 12]]",[[0.25756651546177656]],"General patients paid 25.8% of total cost in FY2026.
+
+- Patient cost was A$2.77B out of total cost of A$10.77B.
+- The data covers all 12 months, Jul 2025 to Jun 2026.
+
+Definition: patient cost ÷ total cost (government + patient), General scheme group, FY2026 = Jul 2025 - Jun 2026."
+23,time,In which calendar month of 2025 was total cost highest?,1,,,1,"SELECT cal_month, SUM(total_cost) AS total_cost, SUM(scripts) AS scripts FROM monthly_drug WHERE cal_year=2025 GROUP BY cal_month ORDER BY total_cost DESC","SELECT cal_month, SUM(total_cost) AS total_cost FROM monthly_drug WHERE cal_year = 2025 GROUP BY 1 ORDER BY 2 DESC LIMIT 1","[[12, 2188668699.619996, 31722859], [7, 2114329598.4799972, 29362555], [10, 2086912517.7599998, 29447143], [5, 2036799699.1199968, 28677758], [9, 2005175580.32, 28535910]]","[[12, 2188668699.619996]]","December 2025 had the highest total cost, at A$2.19B.
+
+- July 2025 was second at A$2.11B, then October at A$2.09B.
+- February 2025 was the lowest at A$1.78B.
+- December also had the most scripts, at 31.7M.
+
+Definition: total cost (government + patient), summed across all drugs and scheme groups, by calendar month of 2025 (Jan–Dec 2025)."
+24,time,What was the total cost in December 2025?,1,,,1,"SELECT SUM(total_cost) AS total_cost, SUM(govt_cost) AS govt_cost, SUM(patient_cost) AS patient_cost, SUM(scripts) AS scripts FROM monthly_drug WHERE month_start = DATE '2025-12-01'",SELECT SUM(total_cost) AS total_cost FROM monthly_drug WHERE month_start = DATE '2025-12-01',"[[2188668699.619996, 1903051777.3699992, 285616922.24999917, 31722859]]",[[2188668699.619996]],"Total PBS cost in December 2025 was A$2.19B.
+
+- Government paid A$1.90B (87.0%).
+- Patients paid A$285.6M (13.0%).
+- There were 31.72M scripts.
+
+Definition: total cost (government + patient), all drugs and scheme groups, December 2025 (FY2026)."
+25,latest_year,"Compared with the year before, how much did government cost change in the latest year, in percent?",1,,,1,"SELECT fin_year, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months, SUM(govt_cost) AS govt_cost FROM monthly_drug GROUP BY fin_year ORDER BY fin_year",SELECT (SUM(govt_cost) FILTER (WHERE fin_year = 2026) / SUM(govt_cost) FILTER (WHERE fin_year = 2025) - 1) * 100 AS growth_pct FROM monthly_drug,"[[2023, ""2022-07-01"", ""2023-06-01"", 12, 17044738552.619923], [2024, ""2023-07-01"", ""2024-06-01"", 12, 18111438645.610027], [2025, ""2024-07-01"", ""2025-06-01"", 12, 19476630579.51008], [2026, ""2025-07-01"", ""2026-06-01"", 12, 20495042413.01991], [2027, ""2026-07-01"", ""2026-07-01"", 1, 1879025762.620002]]",[[5.2288912568954515]],"Government cost rose 5.2% in FY2026, from A$19.48B in FY2025 to A$20.50B, an increase of A$1.02B.
+
+- The data also has one month of FY2027 (Jul 2026). I left it out because it is a partial year.
+
+Definition: government-paid cost (govt_cost), all drugs and scheme groups. FY2026 = Jul 2025 - Jun 2026, compared with FY2025 = Jul 2024 - Jun 2025."
+26,out_of_scope,Which hospital prescribed the most pembrolizumab in FY2026?,1,,"regraded: refusal phrase ""doesn't say"" added to markers",1,"SELECT scheme_group, SUM(scripts) AS total_scripts, SUM(total_cost) AS total_cost FROM monthly_drug WHERE drug_name='PEMBROLIZUMAB' AND fin_year=2026 GROUP BY scheme_group ORDER BY total_cost DESC",(should refuse),"[[""Concessional"", 43815, 370435483.58], [""General"", 33574, 280498953.43], [""RPBS"", 1666, 14065425.63]]",[],"The data doesn't say which hospital prescribed the most pembrolizumab. It has no hospital, prescriber or state fields.
+
+The closest question it can answer is pembrolizumab by scheme group in FY2026:
+- Total: 79,055 scripts, A$665.0M.
+- Concessional: 43,815 scripts, A$370.4M.
+- General: 33,574 scripts, A$280.5M.
+- RPBS: 1,666 scripts, A$14.1M.
+
+Definition: scripts and total cost (government + patient) for pembrolizumab by scheme group, FY2026 = Jul 2025 - Jun 2026."
+27,out_of_scope,Which Australian state had the highest PBS spending in FY2026?,1,,,0,,(should refuse),[],[],"The data can't answer this because it has no state or regional field.
+
+- The table only breaks spending down by month, drug, drug group (ATC level 1) and scheme group (General, Concessional, RPBS, Other).
+- I can instead give FY2026 spending by drug, drug group or scheme group, or national totals.
+
+Definition: no measure applies. State-level PBS spending isn't in the table, which covers FY2023–FY2026 nationally."
+28,out_of_scope,How many patients used semaglutide in FY2026?,1,,,1,"select drug_name, sum(scripts) as total_scripts, sum(total_cost) as total_cost, min(month_start) as first_month, max(month_start) as last_month, count(distinct month_start) as months from monthly_drug where fin_year=2026 and drug_name like '%SEMAGLUTIDE%' group by drug_name",(should refuse),"[[""SEMAGLUTIDE"", 3248790, 439995113.2300001, ""2025-07-01"", ""2026-06-01"", 12]]",[],"The data doesn't contain patient numbers, so I can't say how many patients used semaglutide. It only counts prescriptions (scripts), and one patient can have many scripts.
+
+- The closest figure is scripts: 3,248,790 semaglutide scripts were supplied in FY2026.
+- Total cost for those scripts was A$440.0M.
+
+Definition: scripts supplied and total cost (government + patient) for semaglutide, FY2026 = Jul 2025 - Jun 2026, all scheme groups."
+29,out_of_scope,What was the total PBS cost in FY2020?,1,,,0,,(should refuse),[],[],"The data doesn't contain FY2020, so I can't give a total PBS cost for that year. It only covers FY2023 to FY2026 (Jul 2022 onwards).
+
+- I can give total cost for any of FY2023, FY2024, FY2025 or FY2026, and a comparison across those years.
+- I can also break any of those years down by drug, drug group or scheme group.
+
+Definition: no measure applies, because FY2020 (Jul 2019 - Jun 2020) falls outside the available data."
+30,out_of_scope,What will total PBS cost be in FY2028?,1,,,1,"SELECT fin_year, SUM(total_cost) AS total_cost, MIN(month_start) AS first_month, MAX(month_start) AS last_month, COUNT(DISTINCT month_start) AS months_in_data FROM monthly_drug GROUP BY fin_year ORDER BY fin_year",(should refuse),"[[2023, 20478926759.65993, ""2022-07-01"", ""2023-06-01"", 12], [2024, 21686018976.160156, ""2023-07-01"", ""2024-06-01"", 12], [2025, 23135173234.31012, ""2024-07-01"", ""2025-06-01"", 12], [2026, 24229568191.700146, ""2025-07-01"", ""2026-06-01"", 12], [2027, 2199969429.8500004, ""2026-07-01"", ""2026-07-01"", 1]]",[],"The data can't answer this. It covers FY2023–FY2026 only, and I don't forecast. FY2028 is outside that range, so I haven't estimated it.
+
+- Total PBS cost was A$20.48B in FY2023, A$21.69B in FY2024, A$23.14B in FY2025 and A$24.23B in FY2026.
+- Year-on-year growth was 5.9% (FY2024), 6.7% (FY2025) and 4.7% (FY2026).
+- The data also has one month of FY2027 (July 2026, A$2.20B). That is too little to treat as a full year.
+
+I can break down the FY2023–FY2026 trend by drug group or scheme group if that helps your planning.
+
+Definition: total cost (government + patient), financial years Jul–Jun, FY2023 = Jul 2022 – Jun 2023."
